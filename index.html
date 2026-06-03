@@ -122,15 +122,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .search-box input::placeholder{color:var(--text3)}
 .search-box svg{color:var(--text3);flex-shrink:0}
 
-.interfaces-table-wrap{flex:1;overflow-y:auto}
-.interfaces-table{width:100%;border-collapse:collapse}
-.interfaces-table th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.7px;color:var(--text3);border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:2;white-space:nowrap}
-.interfaces-table td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13px}
-.interfaces-table tr:hover td{background:var(--surface2)}
-.interfaces-table tr.clickable{cursor:pointer}
-.iface-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--nmbs);font-weight:500}
-.iface-name{font-weight:500;color:var(--text)}
-.iface-links{display:flex;gap:6px}
+/* EXPANDABLE INTERFACES */
+.ifaces-wrap{flex:1;display:flex;overflow:hidden}
+.ifaces-list{flex:1;overflow-y:auto;min-width:0}
+.iface-group{border-bottom:1px solid var(--border)}
+.iface-group-header{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;transition:var(--transition);user-select:none;background:var(--surface)}
+.iface-group-header:hover{background:var(--surface2)}
+.iface-group-header.expanded{background:var(--surface2)}
+.iface-chevron{transition:transform 0.2s;color:var(--text3);flex-shrink:0;display:flex}
+.iface-chevron.open{transform:rotate(90deg)}
+.iface-group-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--nmbs);font-weight:600;flex-shrink:0;min-width:72px}
+.iface-group-name{font-weight:600;font-size:13px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iface-group-meta{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.iface-group-prog{display:flex;align-items:center;gap:6px;min-width:90px}
+.iface-group-links{display:flex;gap:5px}
+.iface-group-actions{display:flex;gap:4px;opacity:0;transition:opacity 0.15s}
+.iface-group-header:hover .iface-group-actions{opacity:1}
+.iface-tasks{display:none;background:var(--bg)}
+.iface-tasks.open{display:block}
+.iface-task-row{display:flex;align-items:center;gap:10px;padding:9px 16px 9px 44px;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--transition);border-left:2px solid transparent}
+.iface-task-row:hover{background:var(--surface)}
+.iface-task-row.selected{background:var(--accent-glow);border-left-color:var(--accent)}
+.iface-task-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.iface-task-name{flex:1;font-size:13px;font-weight:500;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iface-task-meta{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.iface-task-due{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
+.iface-task-due.overdue{color:var(--blocked)}
+.iface-task-assignee{font-size:11px;color:var(--text3)}
+.iface-task-actions{display:flex;gap:3px;opacity:0;transition:opacity 0.15s}
+.iface-task-row:hover .iface-task-actions{opacity:1}
+.iface-add-task{display:flex;align-items:center;gap:8px;padding:8px 16px 8px 44px;cursor:pointer;color:var(--text3);font-size:12px;transition:var(--transition);border-bottom:1px solid var(--border)}
+.iface-add-task:hover{color:var(--accent);background:var(--surface)}
+
+/* TASK SIDE PANEL (right panel within interfaces view) */
+.ifaces-side{width:0;min-width:0;border-left:0 solid var(--border);overflow:hidden;display:flex;flex-direction:column;transition:width 0.22s ease;background:var(--surface);flex-shrink:0}
+.ifaces-side.open{width:340px;min-width:340px;border-left:1px solid var(--border)}
+
 .iface-link{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:500;text-decoration:none;background:var(--surface2);border:1px solid var(--border);color:var(--text2);transition:var(--transition)}
 .iface-link:hover{color:var(--text);border-color:var(--accent);background:var(--accent-glow)}
 .iface-link.fsp{color:#3fc97a;border-color:rgba(63,201,122,0.3)}
@@ -385,90 +412,22 @@ select option{background:var(--surface2)}
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>
           <input type="text" id="iface-search" placeholder="Zoek interface..." oninput="renderInterfacesList()">
         </div>
-        <div class="view-switcher">
-          <button class="vs-btn active" onclick="switchIfaceView('list',this)">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
-            Lijst
-          </button>
-        </div>
         <button class="btn btn-nmbs" onclick="openAddInterfaceModal()">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v12M2 8h12"/></svg>
           Interface toevoegen
         </button>
       </div>
-      <div class="interfaces-table-wrap">
-        <table class="interfaces-table" id="ifaces-table">
-          <thead>
-            <tr>
-              <th>Nr</th>
-              <th>Naam</th>
-              <th>Status</th>
-              <th>Prioriteit</th>
-              <th>Toewijzing</th>
-              <th>Periode</th>
-              <th>Voortgang taken</th>
-              <th>Links</th>
-              <th style="width:60px"></th>
-            </tr>
-          </thead>
-          <tbody id="ifaces-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- INTERFACE DETAIL (overlays interfaces list) -->
-    <div class="detail-view" id="view-detail">
-      <div class="detail-header">
-        <div class="detail-header-left">
-          <div class="detail-num" id="detail-num"></div>
-          <div class="detail-name" id="detail-name"></div>
-          <div class="detail-meta">
-            <span id="detail-status-badge"></span>
-            <span id="detail-priority-tag" class="tag"></span>
-            <span id="detail-assignee-tag" class="tag" style="font-family:'DM Mono',monospace;font-size:11px"></span>
-            <span id="detail-period-tag" style="font-family:'DM Mono',monospace;font-size:11px;display:inline-flex;align-items:center;gap:4px;color:var(--text2)"></span>
-          </div>
-          <div class="detail-links" style="margin-top:10px" id="detail-links"></div>
-        </div>
-        <div style="display:flex;gap:8px;flex-shrink:0;align-items:flex-start">
-          <button class="btn btn-ghost btn-sm" onclick="openEditInterfaceModal()">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg>
-            Bewerken
-          </button>
-          <button class="btn btn-ghost btn-sm" onclick="closeDetail()">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8M12 4l-8 8"/></svg>
-            Sluiten
-          </button>
-        </div>
-      </div>
-      <!-- view switcher within detail -->
-      <div style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--surface)">
-        <div class="view-switcher" id="detail-view-switcher">
-          <button class="vs-btn active" onclick="switchDetailView('tasks',this)">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
-            Taken
-          </button>
-          <button class="vs-btn" onclick="switchDetailView('gantt',this)">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="8" height="2" rx="1"/><rect x="5" y="7" width="9" height="2" rx="1"/><rect x="2" y="11" width="6" height="2" rx="1"/></svg>
-            Gantt
-          </button>
-        </div>
-        <button class="btn btn-ghost btn-sm" onclick="openAddTaskModal()" style="margin-left:auto">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v12M2 8h12"/></svg>
-          Taak toevoegen
-        </button>
-      </div>
-      <div class="detail-content">
-        <div class="detail-main" id="detail-main"></div>
-        <!-- TASK SIDE PANEL -->
-        <div class="detail-side" id="task-side-panel">
+      <div class="ifaces-wrap">
+        <div class="ifaces-list" id="ifaces-list"></div>
+        <!-- RIGHT SIDE PANEL -->
+        <div class="ifaces-side" id="ifaces-side-panel">
           <div class="side-panel-header">
-            <div class="side-panel-title" id="side-task-title">Taak details</div>
-            <button class="btn-icon" onclick="closeSidePanel()">
+            <div class="side-panel-title" id="ifaces-side-title">Taak details</div>
+            <button class="btn-icon" onclick="closeIfaceSidePanel()">
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l8 8M12 4l-8 8"/></svg>
             </button>
           </div>
-          <div class="side-panel-body" id="side-panel-body"></div>
+          <div class="side-panel-body" id="ifaces-side-body"></div>
         </div>
       </div>
     </div>
@@ -690,6 +649,7 @@ var state = {
   editingTaskId: null,
   editingTmplId: null,
   editingPersonId: null,
+  expandedIfaceId: null,
   ganttTaskColW: parseInt(localStorage.getItem('ganttColW')||'240'),
   db: null,
   dbRef: null,
@@ -717,1006 +677,935 @@ function saveFirebaseConfig(){
     databaseURL:document.getElementById('s-dburl').value.trim(),
     projectId:document.getElementById('s-projectid').value.trim(),
     storageBucket:document.getElementById('s-bucket').value.trim(),
-    messagingSenderId:document.getElementById('s-senderid').value.trim(),
-    appId:document.getElementById('s-appid').value.trim(),
+<script>
+// STATE
+var state = {
+  interfaces: [], template: [], people: [],
+  currentView: 'dashboard',
+  currentIfaceId: null, currentTaskId: null,
+  expandedIfaceId: null,
+  editingIfaceId: null, editingTaskId: null,
+  editingTmplId: null, editingPersonId: null,
+  ganttTaskColW: parseInt(localStorage.getItem('ganttColW') || '240'),
+  db: null, dbRef: null, saveTimer: null,
+  confirmResolveCallback: null,
+};
+
+// FIREBASE
+var DEFAULT_FB_CONFIG = {
+  apiKey: "AIzaSyB4KcVr4s7D14bDqfoZCwZuaUyTzwhrsN0",
+  authDomain: "nmbstasktracker.firebaseapp.com",
+  databaseURL: "https://nmbstasktracker-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "nmbstasktracker",
+  storageBucket: "nmbstasktracker.firebasestorage.app",
+  messagingSenderId: "406499658597",
+  appId: "1:406499658597:web:6adff95b1e1ca26618ef8c"
+};
+function getFirebaseConfig() {
+  try { return JSON.parse(localStorage.getItem('nmbs_fb_config') || 'null') || DEFAULT_FB_CONFIG; }
+  catch(e) { return DEFAULT_FB_CONFIG; }
+}
+function saveFirebaseConfig() {
+  var cfg = {
+    apiKey: document.getElementById('s-apikey').value.trim(),
+    authDomain: document.getElementById('s-authdomain').value.trim(),
+    databaseURL: document.getElementById('s-dburl').value.trim(),
+    projectId: document.getElementById('s-projectid').value.trim(),
+    storageBucket: document.getElementById('s-bucket').value.trim(),
+    messagingSenderId: document.getElementById('s-senderid').value.trim(),
+    appId: document.getElementById('s-appid').value.trim(),
   };
-  if(!cfg.apiKey||!cfg.databaseURL){toast('Vul minimaal API Key en Database URL in','error');return;}
-  localStorage.setItem('nmbs_fb_config',JSON.stringify(cfg));
+  if (!cfg.apiKey || !cfg.databaseURL) { toast('Vul minimaal API Key en Database URL in', 'error'); return; }
+  localStorage.setItem('nmbs_fb_config', JSON.stringify(cfg));
   initFirebase(cfg);
 }
-function clearFirebaseConfig(){
+function clearFirebaseConfig() {
   localStorage.removeItem('nmbs_fb_config');
-  document.getElementById('firebase-status').textContent='Config gewist. Herlaad de pagina.';
+  document.getElementById('firebase-status').textContent = 'Config gewist. Herlaad de pagina.';
 }
-function initFirebase(cfg){
-  try{
-    if(firebase.apps.length){firebase.app().delete().catch(function(){});}
+function initFirebase(cfg) {
+  try {
+    if (firebase.apps.length) { firebase.app().delete().catch(function() {}); }
     firebase.initializeApp(cfg);
-    state.db=firebase.database();
-    state.dbRef=state.db.ref('nmbs-tracker');
-    document.getElementById('firebase-status').innerHTML='<span style="color:var(--done)">&#10003; Verbonden</span>';
+    state.db = firebase.database();
+    state.dbRef = state.db.ref('nmbs-tracker');
+    document.getElementById('firebase-status').innerHTML = '<span style="color:var(--done)">&#10003; Verbonden</span>';
     listenFirebase();
-    toast('Firebase verbonden','success');
-  }catch(e){
-    document.getElementById('firebase-status').innerHTML='<span style="color:var(--blocked)">Fout: '+e.message+'</span>';
+    toast('Firebase verbonden', 'success');
+  } catch(e) {
+    document.getElementById('firebase-status').innerHTML = '<span style="color:var(--blocked)">Fout: ' + e.message + '</span>';
   }
 }
-function listenFirebase(){
-  if(!state.dbRef)return;
-  state.dbRef.on('value',function(snap){
-    var data=snap.val()||{};
-    state.interfaces=(data.interfaces||[]).filter(Boolean);
-    state.template=(data.template||[]).filter(Boolean);
-    state.people=(data.people||[]).filter(Boolean);
+function listenFirebase() {
+  if (!state.dbRef) return;
+  state.dbRef.on('value', function(snap) {
+    var data = snap.val() || {};
+    state.interfaces = (data.interfaces || []).filter(Boolean);
+    state.template   = (data.template   || []).filter(Boolean);
+    state.people     = (data.people     || []).filter(Boolean);
     renderCurrentView();
     updateBadges();
   });
 }
-function saveToFirebase(){
-  if(!state.dbRef){saveLocalFallback();return;}
+function saveToFirebase() {
+  if (!state.dbRef) { saveLocal(); return; }
   showSavePill('saving');
   clearTimeout(state.saveTimer);
-  state.saveTimer=setTimeout(function(){
-    state.dbRef.set({interfaces:state.interfaces,template:state.template,people:state.people})
-      .then(function(){showSavePill('saved');})
-      .catch(function(e){toast('Sla fout: '+e.message,'error');showSavePill('');});
-  },400);
+  state.saveTimer = setTimeout(function() {
+    state.dbRef.set({ interfaces: state.interfaces, template: state.template, people: state.people })
+      .then(function() { showSavePill('saved'); })
+      .catch(function(e) { toast('Sla fout: ' + e.message, 'error'); showSavePill(''); });
+  }, 400);
 }
-function saveLocalFallback(){
-  localStorage.setItem('nmbs_local',JSON.stringify({interfaces:state.interfaces,template:state.template,people:state.people}));
+function saveLocal() {
+  localStorage.setItem('nmbs_local', JSON.stringify({ interfaces: state.interfaces, template: state.template, people: state.people }));
   showSavePill('saved');
 }
-function loadLocalFallback(){
-  try{
-    var d=JSON.parse(localStorage.getItem('nmbs_local')||'{}');
-    state.interfaces=(d.interfaces||[]).filter(Boolean);
-    state.template=(d.template||[]).filter(Boolean);
-    state.people=(d.people||[]).filter(Boolean);
-  }catch(e){}
+function loadLocal() {
+  try {
+    var d = JSON.parse(localStorage.getItem('nmbs_local') || '{}');
+    state.interfaces = (d.interfaces || []).filter(Boolean);
+    state.template   = (d.template   || []).filter(Boolean);
+    state.people     = (d.people     || []).filter(Boolean);
+  } catch(e) {}
 }
 
-// ─── SAVE PILL ────────────────────────────────────────────────────────────────
+// SAVE PILL
 var savePillTimer;
-function showSavePill(mode){
-  var pill=document.getElementById('save-pill');
-  var txt=document.getElementById('save-text');
+function showSavePill(mode) {
+  var pill = document.getElementById('save-pill');
+  var txt  = document.getElementById('save-text');
   clearTimeout(savePillTimer);
   pill.classList.remove('saving');
-  if(mode==='saving'){pill.classList.add('saving');txt.textContent='Opslaan...';pill.classList.add('visible');}
-  else if(mode==='saved'){txt.textContent='Opgeslagen';pill.classList.add('visible');savePillTimer=setTimeout(function(){pill.classList.remove('visible');},2000);}
-  else{pill.classList.remove('visible');}
+  if (mode === 'saving') {
+    pill.classList.add('saving'); txt.textContent = 'Opslaan...'; pill.classList.add('visible');
+  } else if (mode === 'saved') {
+    txt.textContent = 'Opgeslagen'; pill.classList.add('visible');
+    savePillTimer = setTimeout(function() { pill.classList.remove('visible'); }, 2000);
+  } else {
+    pill.classList.remove('visible');
+  }
 }
 
-// ─── NAVIGATION ───────────────────────────────────────────────────────────────
-function navigate(view){
-  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
-  var navEl=document.getElementById('nav-'+view);
-  if(navEl)navEl.classList.add('active');
-  if(view!=='detail'){
-    document.getElementById('view-detail').classList.remove('active');
-    state.currentIfaceId=null;
-  }
-  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
-  var viewEl=document.getElementById('view-'+view);
-  if(viewEl)viewEl.classList.add('active');
-  if(view==='interfaces'){
-    document.getElementById('view-interfaces').classList.add('active');
-  }
-  state.currentView=view;
+// NAVIGATION
+function navigate(view) {
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  var navEl = document.getElementById('nav-' + view);
+  if (navEl) navEl.classList.add('active');
+  if (view !== 'interfaces') { closeIfaceSidePanel(); }
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  var viewEl = document.getElementById('view-' + view);
+  if (viewEl) viewEl.classList.add('active');
+  state.currentView = view;
   renderCurrentView();
   updateTopbar();
 }
-function renderCurrentView(){
-  switch(state.currentView){
-    case 'dashboard': renderDashboard(); break;
-    case 'focus': renderFocus(); break;
+function renderCurrentView() {
+  switch (state.currentView) {
+    case 'dashboard':  renderDashboard(); break;
+    case 'focus':      renderFocus(); break;
     case 'interfaces': renderInterfacesList(); break;
-    case 'detail': renderDetail(); break;
-    case 'gantt': renderGantt(); break;
-    case 'kanban': renderKanban(); break;
-    case 'template': renderTemplate(); break;
-    case 'people': renderPeople(); break;
-    case 'settings': populateSettingsForm(); break;
+    case 'gantt':      renderGantt(); break;
+    case 'kanban':     renderKanban(); break;
+    case 'template':   renderTemplate(); break;
+    case 'people':     renderPeople(); break;
+    case 'settings':   populateSettingsForm(); break;
   }
 }
-function updateTopbar(){
-  var titles={dashboard:'Dashboard',focus:'Today / Focus',interfaces:'Interfaces',detail:'Interface detail',gantt:'Gantt',kanban:'Kanban',template:'Taak Sjabloon',people:'Mensen',settings:'Instellingen'};
-  document.getElementById('topbar-title').textContent=titles[state.currentView]||'';
+function updateTopbar() {
+  var titles = { dashboard:'Dashboard', focus:'Today / Focus', interfaces:'Interfaces', gantt:'Gantt', kanban:'Kanban', template:'Taak Sjabloon', people:'Mensen', settings:'Instellingen' };
+  document.getElementById('topbar-title').textContent = titles[state.currentView] || '';
 }
-function updateBadges(){
-  document.getElementById('badge-interfaces').textContent=state.interfaces.length;
-  document.getElementById('badge-people').textContent=state.people.length;
+function updateBadges() {
+  document.getElementById('badge-interfaces').textContent = state.interfaces.length;
+  document.getElementById('badge-people').textContent = state.people.length;
 }
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-function statusBadge(s){
-  var map={open:'Open',inprogress:'In Progress',review:'Review',done:'Done',blocked:'Blocked'};
-  return '<span class="status-badge status-'+(s||'open')+'">'+(map[s]||s)+'</span>';
+// HELPERS
+function statusBadge(s) {
+  var map = { open:'Open', inprogress:'In Progress', review:'Review', done:'Done', blocked:'Blocked' };
+  return '<span class="status-badge status-' + (s || 'open') + '">' + (map[s] || s) + '</span>';
 }
-function statusColor(s){
-  var m={open:'var(--open)',inprogress:'var(--inprogress)',review:'var(--review)',done:'var(--done)',blocked:'var(--blocked)'};
-  return m[s]||'var(--text3)';
+function statusColor(s) {
+  var m = { open:'var(--open)', inprogress:'var(--inprogress)', review:'var(--review)', done:'var(--done)', blocked:'var(--blocked)' };
+  return m[s] || 'var(--text3)';
 }
-function prioCap(p){return p?p.charAt(0).toUpperCase()+p.slice(1):'—';}
-function fmt(d){if(!d)return '';var parts=d.split('-');return parts[2]+'/'+parts[1]+'/'+parts[0];}
-function fmtDt(ts){var d=new Date(ts);return d.toLocaleDateString('nl-BE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
-function initials(name){return (name||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);}
-function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function prioCap(p) { return p ? p.charAt(0).toUpperCase() + p.slice(1) : '-'; }
+function fmt(d) { if (!d) return ''; var p = d.split('-'); return p[2] + '/' + p[1] + '/' + p[0]; }
+function fmtDt(ts) { var d = new Date(ts); return d.toLocaleDateString('nl-BE', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+function initials(name) { return (name || '?').split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2); }
+function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function allTasks(){
-  var result=[];
-  state.interfaces.forEach(function(i){
-    (i.tasks||[]).forEach(function(t){
-      result.push(Object.assign({},t,{ifaceId:i.id,ifaceNum:i.num,ifaceName:i.name}));
+function allTasks() {
+  var result = [];
+  state.interfaces.forEach(function(i) {
+    (i.tasks || []).forEach(function(t) {
+      result.push({ id:t.id, name:t.name, status:t.status, assignee:t.assignee, start:t.start, end:t.end, notes:t.notes, comments:t.comments, fromTemplate:t.fromTemplate, ifaceId:i.id, ifaceNum:i.num, ifaceName:i.name });
     });
   });
   return result;
 }
 
-function ifaceDates(iface){
-  var tasks=(iface.tasks||[]).filter(function(t){return t.start&&t.end;});
-  if(tasks.length){
-    var start=tasks.reduce(function(m,t){return t.start<m?t.start:m;},tasks[0].start);
-    var end=tasks.reduce(function(m,t){return t.end>m?t.end:m;},tasks[0].end);
-    return {start:start,end:end,auto:true};
+function ifaceDates(iface) {
+  var tasks = (iface.tasks || []).filter(function(t) { return t.start && t.end; });
+  if (tasks.length) {
+    var start = tasks.reduce(function(m,t) { return t.start < m ? t.start : m; }, tasks[0].start);
+    var end   = tasks.reduce(function(m,t) { return t.end   > m ? t.end   : m; }, tasks[0].end);
+    return { start:start, end:end, auto:true };
   }
-  if(iface.manualStart||iface.manualEnd)return {start:iface.manualStart||null,end:iface.manualEnd||null,auto:false};
-  return {start:null,end:null,auto:false};
+  if (iface.manualStart || iface.manualEnd) return { start:iface.manualStart||null, end:iface.manualEnd||null, auto:false };
+  return { start:null, end:null, auto:false };
 }
 
-// ─── DASHBOARD ────────────────────────────────────────────────────────────────
-function renderDashboard(){
-  var tasks=allTasks();
-  function byStatus(s){return tasks.filter(function(t){return t.status===s;}).length;}
-  var total=tasks.length;
-  var done=byStatus('done');
-  var overdue=tasks.filter(function(t){return t.end&&t.status!=='done'&&new Date(t.end)<new Date();}).length;
-  var pct=total?Math.round(done/total*100):0;
+// DASHBOARD
+function renderDashboard() {
+  var tasks = allTasks();
+  function byStatus(s) { return tasks.filter(function(t) { return t.status === s; }).length; }
+  var total = tasks.length;
+  var done  = byStatus('done');
+  var overdue = tasks.filter(function(t) { return t.end && t.status !== 'done' && new Date(t.end) < new Date(); }).length;
+  var pct = total ? Math.round(done / total * 100) : 0;
 
-  var statusConfig=[
-    {key:'open',label:'Open',color:'var(--open)'},
-    {key:'inprogress',label:'In Progress',color:'var(--inprogress)'},
-    {key:'review',label:'Review',color:'var(--review)'},
-    {key:'done',label:'Done',color:'var(--done)'},
-    {key:'blocked',label:'Blocked',color:'var(--blocked)'},
+  var statusConfig = [
+    { key:'open',      label:'Open',       color:'var(--open)' },
+    { key:'inprogress',label:'In Progress',color:'var(--inprogress)' },
+    { key:'review',    label:'Review',     color:'var(--review)' },
+    { key:'done',      label:'Done',       color:'var(--done)' },
+    { key:'blocked',   label:'Blocked',    color:'var(--blocked)' },
   ];
-
-  var overdueIfaces=state.interfaces.filter(function(i){
-    return (i.tasks||[]).some(function(t){return t.end&&t.status!=='done'&&new Date(t.end)<new Date();});
+  var overdueIfaces = state.interfaces.filter(function(i) {
+    return (i.tasks || []).some(function(t) { return t.end && t.status !== 'done' && new Date(t.end) < new Date(); });
   });
 
-  var statusRows=statusConfig.map(function(s){
+  var statusRows = statusConfig.map(function(s) {
     return '<div class="status-row">'
-      +'<div class="status-dot" style="background:'+s.color+'"></div>'
-      +'<div class="status-row-label">'+s.label+'</div>'
-      +'<div class="status-row-count" style="color:'+s.color+'">'+byStatus(s.key)+'</div>'
-      +'</div>';
+      + '<div class="status-dot" style="background:' + s.color + '"></div>'
+      + '<div class="status-row-label">' + s.label + '</div>'
+      + '<div class="status-row-count" style="color:' + s.color + '">' + byStatus(s.key) + '</div>'
+      + '</div>';
   }).join('');
 
-  var ifaceProgress=state.interfaces.slice(0,5).map(function(i){
-    var t=i.tasks||[];
-    var d=t.filter(function(x){return x.status==='done';}).length;
-    var p=t.length?Math.round(d/t.length*100):0;
+  var ifaceProgress = state.interfaces.slice(0, 5).map(function(i) {
+    var t = i.tasks || [];
+    var d = t.filter(function(x) { return x.status === 'done'; }).length;
+    var p = t.length ? Math.round(d / t.length * 100) : 0;
     return '<div style="margin-bottom:10px">'
-      +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">'
-      +'<span style="color:var(--nmbs);font-family:\'DM Mono\',monospace">'+esc(i.num)+'</span>'
-      +'<span style="color:var(--text3)">'+d+'/'+t.length+'</span>'
-      +'</div>'
-      +'<div class="progress-bar"><div class="progress-fill'+(p===100?' done':'')+'" style="width:'+p+'%"></div></div>'
-      +'</div>';
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">'
+      + '<span style="color:var(--nmbs);font-family:\'DM Mono\',monospace">' + esc(i.num) + '</span>'
+      + '<span style="color:var(--text3)">' + d + '/' + t.length + '</span></div>'
+      + '<div class="progress-bar"><div class="progress-fill' + (p === 100 ? ' done' : '') + '" style="width:' + p + '%"></div></div>'
+      + '</div>';
   }).join('');
 
-  var moreLabel=state.interfaces.length>5
-    ?'<div style="font-size:11px;color:var(--text3);margin-top:4px">...en '+(state.interfaces.length-5)+' meer</div>':'';
+  var moreLabel = state.interfaces.length > 5
+    ? '<div style="font-size:11px;color:var(--text3);margin-top:4px">...en ' + (state.interfaces.length - 5) + ' meer</div>' : '';
 
-  var overdueBlock='';
-  if(overdueIfaces.length){
-    var overdueCards=overdueIfaces.map(function(i){
-      return '<div onclick="openDetail(\''+i.id+'\')" style="cursor:pointer;padding:8px 14px;background:rgba(247,79,79,0.08);border:1px solid rgba(247,79,79,0.2);border-radius:var(--radius-sm);font-size:13px">'
-        +'<span style="font-family:\'DM Mono\',monospace;color:var(--nmbs);margin-right:8px">'+esc(i.num)+'</span>'
-        +'<span style="color:var(--text2)">'+esc(i.name)+'</span></div>';
+  var overdueBlock = '';
+  if (overdueIfaces.length) {
+    var cards = overdueIfaces.map(function(i) {
+      return '<div onclick="openDetail(\'' + i.id + '\')" style="cursor:pointer;padding:8px 14px;background:rgba(247,79,79,0.08);border:1px solid rgba(247,79,79,0.2);border-radius:var(--radius-sm);font-size:13px">'
+        + '<span style="font-family:\'DM Mono\',monospace;color:var(--nmbs);margin-right:8px">' + esc(i.num) + '</span>'
+        + '<span style="color:var(--text2)">' + esc(i.name) + '</span></div>';
     }).join('');
-    overdueBlock='<div class="bento span-12">'
-      +'<div class="bento-title" style="color:var(--blocked)">&#9888; Achterstallige interfaces</div>'
-      +'<div style="display:flex;gap:8px;flex-wrap:wrap">'+overdueCards+'</div></div>';
+    overdueBlock = '<div class="bento span-12">'
+      + '<div class="bento-title" style="color:var(--blocked)">Achterstallige interfaces</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap">' + cards + '</div></div>';
   }
 
-  document.getElementById('dashboard-grid').innerHTML=
-    '<div class="bento span-3"><div class="bento-title">Interfaces</div><div class="kpi-value">'+state.interfaces.length+'</div><div class="kpi-label">Totaal</div></div>'
-    +'<div class="bento span-3"><div class="bento-title">Taken totaal</div><div class="kpi-value">'+total+'</div><div class="kpi-label">Alle interfaces</div></div>'
-    +'<div class="bento span-3"><div class="bento-title">Voltooid</div><div class="kpi-value" style="color:var(--done)">'+done+'</div><div class="kpi-label">'+pct+'% compleet</div></div>'
-    +'<div class="bento span-3"><div class="bento-title">Achterstallig</div><div class="kpi-value" style="color:'+(overdue>0?'var(--blocked)':'var(--text2)')+'">'+overdue+'</div><div class="kpi-label">Taken voorbij deadline</div></div>'
-    +'<div class="bento span-6"><div class="bento-title">Status verdeling taken</div>'+statusRows+'</div>'
-    +'<div class="bento span-6"><div class="bento-title">Algehele voortgang</div>'
-      +'<div style="margin-bottom:16px">'
-        +'<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;color:var(--text2)"><span>Taken voltooid</span><span style="font-family:\'DM Mono\',monospace;color:var(--done)">'+done+' / '+total+'</span></div>'
-        +'<div class="progress-bar" style="height:8px"><div class="progress-fill'+(pct===100?' done':'')+'" style="width:'+pct+'%"></div></div>'
-        +'<div style="text-align:right;font-size:11px;color:var(--text3);margin-top:4px">'+pct+'%</div>'
-      +'</div>'
-      +'<div class="bento-title" style="margin-top:16px">Interface status</div>'
-      +ifaceProgress+moreLabel+'</div>'
-    +overdueBlock;
+  document.getElementById('dashboard-grid').innerHTML =
+    '<div class="bento span-3"><div class="bento-title">Interfaces</div><div class="kpi-value">' + state.interfaces.length + '</div><div class="kpi-label">Totaal</div></div>'
+    + '<div class="bento span-3"><div class="bento-title">Taken totaal</div><div class="kpi-value">' + total + '</div><div class="kpi-label">Alle interfaces</div></div>'
+    + '<div class="bento span-3"><div class="bento-title">Voltooid</div><div class="kpi-value" style="color:var(--done)">' + done + '</div><div class="kpi-label">' + pct + '% compleet</div></div>'
+    + '<div class="bento span-3"><div class="bento-title">Achterstallig</div><div class="kpi-value" style="color:' + (overdue > 0 ? 'var(--blocked)' : 'var(--text2)') + '">' + overdue + '</div><div class="kpi-label">Taken voorbij deadline</div></div>'
+    + '<div class="bento span-6"><div class="bento-title">Status verdeling taken</div>' + statusRows + '</div>'
+    + '<div class="bento span-6"><div class="bento-title">Algehele voortgang</div>'
+      + '<div style="margin-bottom:16px">'
+        + '<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px;color:var(--text2)"><span>Taken voltooid</span><span style="font-family:\'DM Mono\',monospace;color:var(--done)">' + done + ' / ' + total + '</span></div>'
+        + '<div class="progress-bar" style="height:8px"><div class="progress-fill' + (pct === 100 ? ' done' : '') + '" style="width:' + pct + '%"></div></div>'
+        + '<div style="text-align:right;font-size:11px;color:var(--text3);margin-top:4px">' + pct + '%</div>'
+      + '</div>'
+      + '<div class="bento-title" style="margin-top:16px">Interface status</div>'
+      + ifaceProgress + moreLabel
+    + '</div>'
+    + overdueBlock;
 }
 
-// ─── FOCUS ────────────────────────────────────────────────────────────────────
-function renderFocus(){
-  var today=new Date();today.setHours(0,0,0,0);
-  var tasks=allTasks().filter(function(t){return t.status!=='done';});
-  var overdue=tasks.filter(function(t){return t.end&&new Date(t.end)<today;});
-  var todayT=tasks.filter(function(t){
-    if(!t.end)return false;
-    var d=new Date(t.end);d.setHours(0,0,0,0);
-    return d.getTime()===today.getTime();
-  });
-  var week=tasks.filter(function(t){
-    if(!t.end)return false;
-    var d=new Date(t.end);d.setHours(0,0,0,0);
-    var diff=(d-today)/86400000;
-    return diff>0&&diff<=7;
-  });
-  var later=tasks.filter(function(t){
-    if(!t.end)return false;
-    var d=new Date(t.end);d.setHours(0,0,0,0);
-    return (d-today)/86400000>7;
-  });
-  var nodate=tasks.filter(function(t){return !t.end;});
+// FOCUS
+function renderFocus() {
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var tasks = allTasks().filter(function(t) { return t.status !== 'done'; });
+  var overdue = tasks.filter(function(t) { return t.end && new Date(t.end) < today; });
+  var todayT  = tasks.filter(function(t) { if (!t.end) return false; var d = new Date(t.end); d.setHours(0,0,0,0); return d.getTime() === today.getTime(); });
+  var week    = tasks.filter(function(t) { if (!t.end) return false; var d = new Date(t.end); d.setHours(0,0,0,0); var diff = (d - today) / 86400000; return diff > 0 && diff <= 7; });
+  var later   = tasks.filter(function(t) { if (!t.end) return false; var d = new Date(t.end); d.setHours(0,0,0,0); return (d - today) / 86400000 > 7; });
+  var nodate  = tasks.filter(function(t) { return !t.end; });
 
-  function focusCard(t){
-    var isOverdue=t.end&&new Date(t.end)<today;
-    return '<div class="focus-card" onclick="openDetail(\''+t.ifaceId+'\',\''+t.id+'\')">'
-      +'<div class="focus-card-iface">'+esc(t.ifaceNum)+'</div>'
-      +'<div class="focus-card-name">'+esc(t.name)+'</div>'
-      +(t.end?'<div class="focus-card-due'+(isOverdue?' overdue':'')+'">'+fmt(t.end)+'</div>':'')
-      +statusBadge(t.status)
-      +'</div>';
+  function focusCard(t) {
+    var isOverdue = t.end && new Date(t.end) < today;
+    return '<div class="focus-card" onclick="openDetail(\'' + t.ifaceId + '\',\'' + t.id + '\')">'
+      + '<div class="focus-card-iface">' + esc(t.ifaceNum) + '</div>'
+      + '<div class="focus-card-name">' + esc(t.name) + '</div>'
+      + (t.end ? '<div class="focus-card-due' + (isOverdue ? ' overdue' : '') + '">' + fmt(t.end) + '</div>' : '')
+      + statusBadge(t.status)
+      + '</div>';
   }
-  function section(label,arr,color){
-    if(!arr.length)return '';
+  function section(label, arr, color) {
+    if (!arr.length) return '';
     return '<div class="focus-section">'
-      +'<div class="focus-section-label" style="color:'+(color||'var(--text3)')+'">'+label+' <span style="font-family:\'DM Mono\',monospace;margin-left:4px">'+arr.length+'</span></div>'
-      +arr.map(focusCard).join('')
-      +'</div>';
+      + '<div class="focus-section-label" style="color:' + (color || 'var(--text3)') + '">' + label + ' <span style="font-family:\'DM Mono\',monospace;margin-left:4px">' + arr.length + '</span></div>'
+      + arr.map(focusCard).join('')
+      + '</div>';
   }
-  var html=section('Achterstallig',overdue,'var(--blocked)')
-    +section('Vandaag',todayT,'var(--inprogress)')
-    +section('Deze week',week)
-    +section('Later',later)
-    +section('Geen datum',nodate);
-  if(!html)html='<div class="empty-state" style="margin-top:60px"><p>Geen openstaande taken &#127881;</p></div>';
-  document.getElementById('focus-content').innerHTML=html;
+  var html = section('Achterstallig', overdue, 'var(--blocked)')
+    + section('Vandaag', todayT, 'var(--inprogress)')
+    + section('Deze week', week)
+    + section('Later', later)
+    + section('Geen datum', nodate);
+  if (!html) html = '<div class="empty-state" style="margin-top:60px"><p>Geen openstaande taken</p></div>';
+  document.getElementById('focus-content').innerHTML = html;
 }
 
-// ─── INTERFACES LIST ─────────────────────────────────────────────────────────
-function renderInterfacesList(){
-  var q=(document.getElementById('iface-search')||{}).value||'';
-  var list=state.interfaces;
-  if(q){
-    var ql=q.toLowerCase();
-    list=list.filter(function(i){return i.name.toLowerCase().includes(ql)||i.num.toLowerCase().includes(ql);});
-  }
-  var tbody=document.getElementById('ifaces-tbody');
-  if(!tbody)return;
-  if(!list.length){
-    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3)">'+(state.interfaces.length?'Geen resultaten gevonden':'Nog geen interfaces. Voeg er een toe!')+'</td></tr>';
+// INTERFACES LIST - expandable rows
+function renderInterfacesList() {
+  var q = (document.getElementById('iface-search') || {}).value || '';
+  var list = state.interfaces;
+  if (q) { var ql = q.toLowerCase(); list = list.filter(function(i) { return i.name.toLowerCase().includes(ql) || i.num.toLowerCase().includes(ql); }); }
+  var container = document.getElementById('ifaces-list');
+  if (!container) return;
+
+  if (!list.length) {
+    container.innerHTML = '<div class="empty-state" style="margin-top:60px"><p>' + (state.interfaces.length ? 'Geen resultaten' : 'Nog geen interfaces. Voeg er een toe!') + '</p></div>';
     return;
   }
-  var today=new Date();today.setHours(0,0,0,0);
-  tbody.innerHTML=list.map(function(i){
-    var tasks=i.tasks||[];
-    var done=tasks.filter(function(t){return t.status==='done';}).length;
-    var pct=tasks.length?Math.round(done/tasks.length*100):0;
-    var dates=ifaceDates(i);
-    var endD=dates.end?new Date(dates.end):null;
-    var isOverdue=endD&&endD<today&&i.status!=='done';
-    var periodHtml='<span style="color:var(--text3);font-size:12px">&#8212;</span>';
-    if(dates.start||dates.end){
-      periodHtml='<div class="date-range'+(dates.auto?' auto':'')+(isOverdue?' overdue':'')+'">'
-        +(dates.start?fmt(dates.start):'?')
-        +' &#8594; '
-        +(dates.end?fmt(dates.end):'?')
-        +(dates.auto?'<span title="Automatisch berekend" style="color:var(--text3);font-size:9px;font-style:italic">auto</span>':'')
-        +'</div>';
+
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var html = '';
+
+  list.forEach(function(iface) {
+    var tasks   = iface.tasks || [];
+    var done    = tasks.filter(function(t) { return t.status === 'done'; }).length;
+    var pct     = tasks.length ? Math.round(done / tasks.length * 100) : 0;
+    var dates   = ifaceDates(iface);
+    var endD    = dates.end ? new Date(dates.end) : null;
+    var isOvd   = endD && endD < today && iface.status !== 'done';
+    var expanded = state.expandedIfaceId === iface.id;
+
+    // Links
+    var fspL = iface.fsp   ? '<a class="iface-link fsp"    href="' + esc(iface.fsp)    + '" target="_blank" onclick="event.stopPropagation()">FSP</a>'    : '<span class="iface-link" style="opacity:0.25">FSP</span>';
+    var tspL = iface.tsp   ? '<a class="iface-link tsp"    href="' + esc(iface.tsp)    + '" target="_blank" onclick="event.stopPropagation()">TSP</a>'    : '<span class="iface-link" style="opacity:0.25">TSP</span>';
+    var ricL = iface.ricefw? '<a class="iface-link ricefw" href="' + esc(iface.ricefw) + '" target="_blank" onclick="event.stopPropagation()">RICEFW</a>' : '<span class="iface-link" style="opacity:0.25">RICEFW</span>';
+
+    // Period
+    var periodStr = '';
+    if (dates.start || dates.end) {
+      periodStr = '<span style="font-family:\'DM Mono\',monospace;font-size:11px;color:' + (isOvd ? 'var(--blocked)' : 'var(--text3)') + '">'
+        + (dates.start ? fmt(dates.start) : '?') + ' > ' + (dates.end ? fmt(dates.end) : '?')
+        + (dates.auto ? ' <em style="font-size:9px;opacity:0.6">auto</em>' : '')
+        + '</span>';
     }
-    var fspLink=i.fsp?'<a class="iface-link fsp" href="'+esc(i.fsp)+'" target="_blank" rel="noopener">FSP</a>':'<span class="iface-link" style="opacity:0.3">FSP</span>';
-    var tspLink=i.tsp?'<a class="iface-link tsp" href="'+esc(i.tsp)+'" target="_blank" rel="noopener">TSP</a>':'<span class="iface-link" style="opacity:0.3">TSP</span>';
-    var ricefwLink=i.ricefw?'<a class="iface-link ricefw" href="'+esc(i.ricefw)+'" target="_blank" rel="noopener">RICEFW</a>':'<span class="iface-link" style="opacity:0.3">RICEFW</span>';
-    return '<tr class="clickable" onclick="openDetail(\''+i.id+'\')">'
-      +'<td><span class="iface-num">'+esc(i.num)+'</span></td>'
-      +'<td><span class="iface-name">'+esc(i.name)+'</span>'+(i.desc?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+esc(i.desc.substring(0,60))+(i.desc.length>60?'...':'')+'</div>':'')+'</td>'
-      +'<td>'+statusBadge(i.status)+'</td>'
-      +'<td><span class="tag">'+prioCap(i.priority)+'</span></td>'
-      +'<td style="font-size:12px;color:var(--text2)">'+(i.assignee||'&#8212;')+'</td>'
-      +'<td>'+periodHtml+'</td>'
-      +'<td class="task-prog"><div style="display:flex;align-items:center;gap:8px;min-width:100px">'
-        +'<div class="progress-bar" style="flex:1"><div class="progress-fill'+(pct===100?' done':'')+'" style="width:'+pct+'%"></div></div>'
-        +'<span style="font-size:11px;color:var(--text3);font-family:\'DM Mono\',monospace;flex-shrink:0">'+done+'/'+tasks.length+'</span>'
-      +'</div></td>'
-      +'<td onclick="event.stopPropagation()"><div class="iface-links">'+fspLink+tspLink+ricefwLink+'</div></td>'
-      +'<td onclick="event.stopPropagation()"><div style="display:flex;gap:4px">'
-        +'<button class="btn-icon" onclick="openEditInterfaceModalById(\''+i.id+'\')" title="Bewerken"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg></button>'
-        +'<button class="btn-icon" style="color:var(--blocked)" onclick="deleteInterface(\''+i.id+'\')" title="Verwijderen"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M5 4V2h6v2M6 7v5M10 7v5"/></svg></button>'
-      +'</div></td>'
-      +'</tr>';
-  }).join('');
-}
-function switchIfaceView(v,btn){
-  document.querySelectorAll('#view-interfaces .vs-btn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
+
+    // Header row
+    html += '<div class="iface-group" id="iface-group-' + iface.id + '">';
+    html += '<div class="iface-group-header' + (expanded ? ' expanded' : '') + '" onclick="toggleIfaceExpand(\'' + iface.id + '\')">';
+    html +=   '<div class="iface-chevron' + (expanded ? ' open' : '') + '"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 3l6 5-6 5"/></svg></div>';
+    html +=   '<div class="iface-group-num">' + esc(iface.num) + '</div>';
+    html +=   '<div class="iface-group-name">' + esc(iface.name) + '</div>';
+    html +=   '<div class="iface-group-meta">';
+    html +=     periodStr;
+    html +=     statusBadge(iface.status);
+    html +=     '<div class="iface-group-prog"><div class="progress-bar" style="min-width:60px"><div class="progress-fill' + (pct === 100 ? ' done' : '') + '" style="width:' + pct + '%"></div></div><span style="font-size:11px;color:var(--text3);font-family:\'DM Mono\',monospace">' + done + '/' + tasks.length + '</span></div>';
+    html +=     '<div class="iface-group-links">' + fspL + tspL + ricL + '</div>';
+    html +=     '<div class="iface-group-actions">';
+    html +=       '<button class="btn-icon" onclick="event.stopPropagation();openEditInterfaceModalById(\'' + iface.id + '\')" title="Bewerken"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg></button>';
+    html +=       '<button class="btn-icon" style="color:var(--blocked)" onclick="event.stopPropagation();deleteInterface(\'' + iface.id + '\')" title="Verwijderen"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M5 4V2h6v2M6 7v5M10 7v5"/></svg></button>';
+    html +=     '</div>';
+    html +=   '</div>';
+    html += '</div>'; // end header
+
+    // Tasks rows (only rendered when expanded)
+    html += '<div class="iface-tasks' + (expanded ? ' open' : '') + '">';
+    if (tasks.length) {
+      tasks.forEach(function(t) {
+        var ov  = t.end && t.status !== 'done' && new Date(t.end) < today;
+        var sel = state.currentTaskId === t.id && state.currentIfaceId === iface.id;
+        html += '<div class="iface-task-row' + (sel ? ' selected' : '') + '" onclick="openIfaceTask(\'' + iface.id + '\',\'' + t.id + '\')">';
+        html +=   '<div class="iface-task-dot" style="background:' + statusColor(t.status) + '"></div>';
+        html +=   '<div class="iface-task-name">' + esc(t.name) + '</div>';
+        html +=   '<div class="iface-task-meta">';
+        html +=     (t.assignee ? '<span class="iface-task-assignee">' + esc(t.assignee) + '</span>' : '');
+        html +=     (t.end ? '<span class="iface-task-due' + (ov ? ' overdue' : '') + '">' + fmt(t.end) + '</span>' : '');
+        html +=     statusBadge(t.status);
+        html +=     '<div class="iface-task-actions">';
+        html +=       '<button class="btn-icon" onclick="event.stopPropagation();state.currentIfaceId=\'' + iface.id + '\';openEditTaskModal(\'' + t.id + '\')" title="Bewerken"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg></button>';
+        html +=       '<button class="btn-icon" style="color:var(--blocked)" onclick="event.stopPropagation();state.currentIfaceId=\'' + iface.id + '\';deleteTask(\'' + t.id + '\')" title="Verwijderen"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M5 4V2h6v2M6 7v5M10 7v5"/></svg></button>';
+        html +=     '</div>';
+        html +=   '</div>';
+        html += '</div>';
+      });
+    } else {
+      html += '<div style="padding:10px 16px 10px 44px;font-size:12px;color:var(--text3)">Geen taken</div>';
+    }
+    html += '<div class="iface-add-task" onclick="state.currentIfaceId=\'' + iface.id + '\';openAddTaskModal()">';
+    html +=   '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v12M2 8h12"/></svg> Taak toevoegen';
+    html += '</div>';
+    html += '</div>'; // end tasks
+    html += '</div>'; // end group
+  });
+
+  container.innerHTML = html;
 }
 
-// ─── INTERFACE DETAIL ─────────────────────────────────────────────────────────
-function openDetail(ifaceId,taskId){
-  state.currentIfaceId=ifaceId;
-  state.currentTaskId=taskId||null;
-  state.currentView='detail';
-  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
-  document.getElementById('view-interfaces').classList.add('active');
-  document.getElementById('view-detail').classList.add('active');
-  renderDetail();
-  if(taskId)openTaskSidePanel(taskId);
-}
-function closeDetail(){
-  document.getElementById('view-detail').classList.remove('active');
-  state.currentIfaceId=null;
-  state.currentTaskId=null;
-  state.currentView='interfaces';
-  navigate('interfaces');
-}
-function renderDetail(){
-  var iface=state.interfaces.find(function(i){return i.id===state.currentIfaceId;});
-  if(!iface)return;
-  document.getElementById('detail-num').textContent=iface.num;
-  document.getElementById('detail-name').textContent=iface.name;
-  document.getElementById('detail-status-badge').innerHTML=statusBadge(iface.status);
-  document.getElementById('detail-priority-tag').textContent=prioCap(iface.priority);
-  document.getElementById('detail-assignee-tag').textContent=iface.assignee||'Niet toegewezen';
-
-  var dates=ifaceDates(iface);
-  var periodEl=document.getElementById('detail-period-tag');
-  if(dates.start||dates.end){
-    var today=new Date();today.setHours(0,0,0,0);
-    var isOverdue=dates.end&&new Date(dates.end)<today&&iface.status!=='done';
-    periodEl.innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M5 1v3M11 1v3M2 7h12"/></svg> '
-      +(dates.start?fmt(dates.start):'?')+' &#8594; '+(dates.end?fmt(dates.end):'?')
-      +(dates.auto?' <span style="font-size:10px;opacity:0.6">auto</span>':'');
-    periodEl.style.color=isOverdue?'var(--blocked)':'var(--text2)';
-    periodEl.style.display='inline-flex';
+function toggleIfaceExpand(ifaceId) {
+  if (state.expandedIfaceId === ifaceId) {
+    state.expandedIfaceId = null;
+    closeIfaceSidePanel();
   } else {
-    periodEl.style.display='none';
+    state.expandedIfaceId = ifaceId;
+    state.currentIfaceId  = ifaceId;
+    state.currentTaskId   = null;
+    closeIfaceSidePanel();
   }
-
-  var svgExt='<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 2H3a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V9M9 1h6v6M15 1L7 9"/></svg> ';
-  document.getElementById('detail-links').innerHTML=
-    (iface.fsp?'<a class="detail-link fsp" href="'+esc(iface.fsp)+'" target="_blank">'+svgExt+'FSP</a>':'<span class="detail-link fsp no-link">FSP</span>')
-    +(iface.tsp?'<a class="detail-link tsp" href="'+esc(iface.tsp)+'" target="_blank">'+svgExt+'TSP</a>':'<span class="detail-link tsp no-link">TSP</span>')
-    +(iface.ricefw?'<a class="detail-link ricefw" href="'+esc(iface.ricefw)+'" target="_blank">'+svgExt+'TSP RICEFW</a>':'<span class="detail-link ricefw no-link">TSP RICEFW</span>');
-
-  renderDetailMain();
+  renderInterfacesList();
 }
-function renderDetailMain(){
-  var iface=state.interfaces.find(function(i){return i.id===state.currentIfaceId;});
-  if(!iface)return;
-  var tasks=iface.tasks||[];
-  var tmplTasks=tasks.filter(function(t){return t.fromTemplate;});
-  var extraTasks=tasks.filter(function(t){return !t.fromTemplate;});
-  var today=new Date();today.setHours(0,0,0,0);
-  if(state.currentDetailView==='tasks'){
-    var html='';
-    if(!tmplTasks.length&&!extraTasks.length){
-      html='<div class="empty-state" style="margin-top:40px"><p>Geen taken. Voeg een taak toe of pas het sjabloon aan.</p></div>';
-    }
-    if(tmplTasks.length){
-      html+='<div class="tasks-section"><div class="tasks-section-title"><span>Sjabloontaken</span></div>'
-        +tmplTasks.map(function(t){return taskRow(t,today);}).join('')+'</div>';
-    }
-    if(extraTasks.length){
-      html+='<div class="tasks-section"><div class="tasks-section-title"><span>Extra taken</span></div>'
-        +extraTasks.map(function(t){return taskRow(t,today);}).join('')+'</div>';
-    }
-    document.getElementById('detail-main').innerHTML=html;
-  } else {
-    renderDetailGantt(iface);
+
+function openIfaceTask(ifaceId, taskId) {
+  state.expandedIfaceId = ifaceId;
+  state.currentIfaceId  = ifaceId;
+  var iface = state.interfaces.find(function(i) { return i.id === ifaceId; });
+  if (!iface) return;
+  var task = (iface.tasks || []).find(function(t) { return t.id === taskId; });
+  if (!task) return;
+  if (state.currentTaskId === taskId) {
+    state.currentTaskId = null;
+    closeIfaceSidePanel();
+    renderInterfacesList();
+    return;
   }
-}
-function taskRow(t,today){
-  var overdue=t.end&&t.status!=='done'&&new Date(t.end)<today;
-  var editBtn='<button class="btn-icon" onclick="event.stopPropagation();openEditTaskModal(\''+t.id+'\')" title="Bewerken"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg></button>';
-  var delBtn='<button class="btn-icon" onclick="event.stopPropagation();deleteTask(\''+t.id+'\')" title="Verwijderen" style="color:var(--blocked)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M5 4V2h6v2M6 7v5M10 7v5"/></svg></button>';
-  return '<div class="task-row'+(state.currentTaskId===t.id?' selected':'')+'" onclick="openTaskSidePanel(\''+t.id+'\')">'
-    +'<div style="width:8px;height:8px;border-radius:50%;background:'+statusColor(t.status)+';flex-shrink:0"></div>'
-    +'<div class="task-row-name">'+esc(t.name)+'</div>'
-    +'<div class="task-row-meta">'
-      +(t.assignee?'<span class="task-row-assignee">'+esc(t.assignee)+'</span>':'')
-      +(t.end?'<span class="task-row-due'+(overdue?' overdue':'')+'">'+fmt(t.end)+'</span>':'')
-      +statusBadge(t.status)
-      +editBtn+delBtn
-    +'</div>'
-    +'</div>';
-}
-function switchDetailView(v,btn){
-  state.currentDetailView=v;
-  document.querySelectorAll('#detail-view-switcher .vs-btn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  renderDetailMain();
+  state.currentTaskId = taskId;
+  var panel = document.getElementById('ifaces-side-panel');
+  panel.classList.add('open');
+  document.getElementById('ifaces-side-title').textContent = task.name;
+  renderSidePanelBody(task, iface);
+  renderInterfacesList();
 }
 
-// ─── TASK SIDE PANEL ─────────────────────────────────────────────────────────
-function openTaskSidePanel(taskId){
-  var iface=state.interfaces.find(function(i){return i.id===state.currentIfaceId;});
-  if(!iface)return;
-  var task=(iface.tasks||[]).find(function(t){return t.id===taskId;});
-  if(!task)return;
-  state.currentTaskId=taskId;
-  document.getElementById('task-side-panel').classList.add('open');
-  document.getElementById('side-task-title').textContent=task.name;
-  renderSidePanelBody(task,iface);
-  renderDetailMain();
+function closeIfaceSidePanel() {
+  var panel = document.getElementById('ifaces-side-panel');
+  if (panel) panel.classList.remove('open');
+  state.currentTaskId = null;
 }
-function closeSidePanel(){
-  document.getElementById('task-side-panel').classList.remove('open');
-  state.currentTaskId=null;
-  renderDetailMain();
-}
-function renderSidePanelBody(task,iface){
-  var comments=task.comments||[];
-  var peopleOpts=state.people.map(function(p){
-    return '<option value="'+esc(p.name)+'"'+(p.name===task.assignee?' selected':'')+'>'+esc(p.name)+(p.role?' ('+esc(p.role)+')':'')+'</option>';
+
+function renderSidePanelBody(task, iface) {
+  var comments   = task.comments || [];
+  var peopleOpts = state.people.map(function(p) {
+    return '<option value="' + esc(p.name) + '"' + (p.name === task.assignee ? ' selected' : '') + '>' + esc(p.name) + (p.role ? ' (' + esc(p.role) + ')' : '') + '</option>';
   }).join('');
-  var commentsHtml=comments.slice().reverse().map(function(c){
-    return '<div class="comment-item">'
-      +'<div class="comment-meta"><span>'+esc(c.author||'Onbekend')+'</span><span>'+fmtDt(c.ts)+'</span></div>'
-      +'<div class="comment-text">'+esc(c.text)+'</div>'
-      +'</div>';
+  var commentsHtml = comments.slice().reverse().map(function(c) {
+    return '<div class="comment-item"><div class="comment-meta"><span>' + esc(c.author || 'Onbekend') + '</span><span>' + fmtDt(c.ts) + '</span></div><div class="comment-text">' + esc(c.text) + '</div></div>';
   }).join('');
-  document.getElementById('side-panel-body').innerHTML=
+  var bodyId = 'ifaces-side-body';
+  document.getElementById(bodyId).innerHTML =
     '<div class="field-group"><div class="field-label">Status</div>'
-      +'<select onchange="updateTaskField(\''+task.id+'\',\'status\',this.value)">'
-        +'<option value="open"'+(task.status==='open'?' selected':'')+'>Open</option>'
-        +'<option value="inprogress"'+(task.status==='inprogress'?' selected':'')+'>In Progress</option>'
-        +'<option value="review"'+(task.status==='review'?' selected':'')+'>Review</option>'
-        +'<option value="done"'+(task.status==='done'?' selected':'')+'>Done</option>'
-        +'<option value="blocked"'+(task.status==='blocked'?' selected':'')+'>Blocked</option>'
-      +'</select></div>'
-    +'<div class="field-group"><div class="field-label">Toewijzing</div>'
-      +'<select onchange="updateTaskField(\''+task.id+'\',\'assignee\',this.value)">'
-        +'<option value="">&#8212; Niet toegewezen &#8212;</option>'+peopleOpts
-      +'</select></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-      +'<div class="field-group"><div class="field-label">Startdatum</div>'
-        +'<input type="date" value="'+(task.start||'')+'" onchange="updateTaskField(\''+task.id+'\',\'start\',this.value)"></div>'
-      +'<div class="field-group"><div class="field-label">Einddatum</div>'
-        +'<input type="date" value="'+(task.end||'')+'" onchange="updateTaskField(\''+task.id+'\',\'end\',this.value)"></div>'
-    +'</div>'
-    +'<div class="field-group"><div class="field-label">Notities</div>'
-      +'<textarea onchange="updateTaskField(\''+task.id+'\',\'notes\',this.value)">'+esc(task.notes||'')+'</textarea></div>'
-    +'<div class="field-group" style="margin-top:16px"><div class="field-label">Opmerkingen ('+comments.length+')</div>'
-      +commentsHtml
-      +'<div class="comment-input-row">'
-        +'<textarea id="comment-input-'+task.id+'" placeholder="Opmerking toevoegen..."></textarea>'
-        +'<button class="btn btn-primary btn-sm" onclick="addComment(\''+task.id+'\')">+</button>'
-      +'</div></div>';
-}
-function updateTaskField(taskId,field,value){
-  var iface=state.interfaces.find(function(i){return i.id===state.currentIfaceId;});
-  if(!iface)return;
-  var task=(iface.tasks||[]).find(function(t){return t.id===taskId;});
-  if(!task)return;
-  task[field]=value;
-  saveToFirebase();
-  renderDetailMain();
-}
-function addComment(taskId){
-  var iface=state.interfaces.find(function(i){return i.id===state.currentIfaceId;});
-  if(!iface)return;
-  var task=(iface.tasks||[]).find(function(t){return t.id===taskId;});
-  if(!task)return;
-  var inp=document.getElementById('comment-input-'+taskId);
-  var text=(inp?inp.value:'').trim();
-  if(!text)return;
-  if(!task.comments)task.comments=[];
-  task.comments.push({id:uid(),text:text,author:'Gebruiker',ts:Date.now()});
-  saveToFirebase();
-  renderSidePanelBody(task,iface);
+    + '<select onchange="updateTaskField(\'' + task.id + '\',\'status\',this.value)">'
+    + '<option value="open"'      + (task.status === 'open'      ? ' selected' : '') + '>Open</option>'
+    + '<option value="inprogress"'+ (task.status === 'inprogress'? ' selected' : '') + '>In Progress</option>'
+    + '<option value="review"'    + (task.status === 'review'    ? ' selected' : '') + '>Review</option>'
+    + '<option value="done"'      + (task.status === 'done'      ? ' selected' : '') + '>Done</option>'
+    + '<option value="blocked"'   + (task.status === 'blocked'   ? ' selected' : '') + '>Blocked</option>'
+    + '</select></div>'
+    + '<div class="field-group"><div class="field-label">Toewijzing</div>'
+    + '<select onchange="updateTaskField(\'' + task.id + '\',\'assignee\',this.value)">'
+    + '<option value="">- Niet toegewezen -</option>' + peopleOpts
+    + '</select></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    + '<div class="field-group"><div class="field-label">Startdatum</div><input type="date" value="' + (task.start || '') + '" onchange="updateTaskField(\'' + task.id + '\',\'start\',this.value)"></div>'
+    + '<div class="field-group"><div class="field-label">Einddatum</div><input type="date" value="' + (task.end || '') + '" onchange="updateTaskField(\'' + task.id + '\',\'end\',this.value)"></div>'
+    + '</div>'
+    + '<div class="field-group"><div class="field-label">Notities</div><textarea onchange="updateTaskField(\'' + task.id + '\',\'notes\',this.value)">' + esc(task.notes || '') + '</textarea></div>'
+    + '<div class="field-group" style="margin-top:16px"><div class="field-label">Opmerkingen (' + comments.length + ')</div>'
+    + commentsHtml
+    + '<div class="comment-input-row"><textarea id="comment-input-' + task.id + '" placeholder="Opmerking toevoegen..."></textarea>'
+    + '<button class="btn btn-primary btn-sm" onclick="addComment(\'' + task.id + '\')">+</button></div></div>';
 }
 
-// ─── INTERFACE CRUD ───────────────────────────────────────────────────────────
-function openAddInterfaceModal(){
-  state.editingIfaceId=null;
-  document.getElementById('iface-modal-title').textContent='Interface toevoegen';
-  ['f-ifacenum','f-ifacename','f-ifacedesc','f-ifacestart','f-ifaceend','f-fsp','f-tsp','f-ricefw'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('f-ifacestatus').value='open';
-  document.getElementById('f-ifaceprio').value='medium';
-  populateAssigneeSelect('f-ifaceassignee','');
+function updateTaskField(taskId, field, value) {
+  var iface = state.interfaces.find(function(i) { return i.id === state.currentIfaceId; });
+  if (!iface) return;
+  var task = (iface.tasks || []).find(function(t) { return t.id === taskId; });
+  if (!task) return;
+  task[field] = value;
+  saveToFirebase();
+  renderInterfacesList();
+  renderSidePanelBody(task, iface);
+}
+
+function addComment(taskId) {
+  var iface = state.interfaces.find(function(i) { return i.id === state.currentIfaceId; });
+  if (!iface) return;
+  var task = (iface.tasks || []).find(function(t) { return t.id === taskId; });
+  if (!task) return;
+  var inp  = document.getElementById('comment-input-' + taskId);
+  var text = (inp ? inp.value : '').trim();
+  if (!text) return;
+  if (!task.comments) task.comments = [];
+  task.comments.push({ id:uid(), text:text, author:'Gebruiker', ts:Date.now() });
+  saveToFirebase();
+  renderSidePanelBody(task, iface);
+}
+
+// openDetail used from kanban/focus/dashboard click-throughs
+function openDetail(ifaceId, taskId) {
+  navigate('interfaces');
+  state.expandedIfaceId = ifaceId;
+  state.currentIfaceId  = ifaceId;
+  state.currentTaskId   = null;
+  renderInterfacesList();
+  if (taskId) { openIfaceTask(ifaceId, taskId); }
+}
+
+// INTERFACE CRUD
+function openAddInterfaceModal() {
+  state.editingIfaceId = null;
+  document.getElementById('iface-modal-title').textContent = 'Interface toevoegen';
+  ['f-ifacenum','f-ifacename','f-ifacedesc','f-ifacestart','f-ifaceend','f-fsp','f-tsp','f-ricefw'].forEach(function(id) { document.getElementById(id).value = ''; });
+  document.getElementById('f-ifacestatus').value = 'open';
+  document.getElementById('f-ifaceprio').value   = 'medium';
+  populateAssigneeSelect('f-ifaceassignee', '');
   document.getElementById('iface-modal-overlay').classList.add('open');
 }
-function openEditInterfaceModal(){
-  var iface=state.interfaces.find(function(i){return i.id===state.currentIfaceId;});
-  if(iface)openEditInterfaceModalById(iface.id);
-}
-function openEditInterfaceModalById(id){
-  var iface=state.interfaces.find(function(i){return i.id===id;});
-  if(!iface)return;
-  state.editingIfaceId=id;
-  document.getElementById('iface-modal-title').textContent='Interface bewerken';
-  document.getElementById('f-ifacenum').value=iface.num||'';
-  document.getElementById('f-ifacename').value=iface.name||'';
-  document.getElementById('f-ifacedesc').value=iface.desc||'';
-  document.getElementById('f-ifacestatus').value=iface.status||'open';
-  document.getElementById('f-ifaceprio').value=iface.priority||'medium';
-  document.getElementById('f-ifacestart').value=iface.manualStart||'';
-  document.getElementById('f-ifaceend').value=iface.manualEnd||'';
-  populateAssigneeSelect('f-ifaceassignee',iface.assignee||'');
-  document.getElementById('f-fsp').value=iface.fsp||'';
-  document.getElementById('f-tsp').value=iface.tsp||'';
-  document.getElementById('f-ricefw').value=iface.ricefw||'';
+function openEditInterfaceModalById(id) {
+  var iface = state.interfaces.find(function(i) { return i.id === id; });
+  if (!iface) return;
+  state.editingIfaceId = id;
+  document.getElementById('iface-modal-title').textContent = 'Interface bewerken';
+  document.getElementById('f-ifacenum').value   = iface.num   || '';
+  document.getElementById('f-ifacename').value  = iface.name  || '';
+  document.getElementById('f-ifacedesc').value  = iface.desc  || '';
+  document.getElementById('f-ifacestatus').value = iface.status || 'open';
+  document.getElementById('f-ifaceprio').value   = iface.priority || 'medium';
+  document.getElementById('f-ifacestart').value  = iface.manualStart || '';
+  document.getElementById('f-ifaceend').value    = iface.manualEnd   || '';
+  document.getElementById('f-fsp').value    = iface.fsp    || '';
+  document.getElementById('f-tsp').value    = iface.tsp    || '';
+  document.getElementById('f-ricefw').value = iface.ricefw || '';
+  populateAssigneeSelect('f-ifaceassignee', iface.assignee || '');
   document.getElementById('iface-modal-overlay').classList.add('open');
 }
-function closeIfaceModal(e){if(!e||e.target===document.getElementById('iface-modal-overlay'))document.getElementById('iface-modal-overlay').classList.remove('open');}
-function saveInterface(){
-  var num=document.getElementById('f-ifacenum').value.trim();
-  var name=document.getElementById('f-ifacename').value.trim();
-  if(!num||!name){toast('Interface nummer en naam zijn verplicht','error');return;}
-  if(state.editingIfaceId){
-    var iface=state.interfaces.find(function(i){return i.id===state.editingIfaceId;});
-    if(iface){
-      iface.num=num;iface.name=name;
-      iface.desc=document.getElementById('f-ifacedesc').value.trim();
-      iface.status=document.getElementById('f-ifacestatus').value;
-      iface.priority=document.getElementById('f-ifaceprio').value;
-      iface.assignee=document.getElementById('f-ifaceassignee').value;
-      iface.manualStart=document.getElementById('f-ifacestart').value||null;
-      iface.manualEnd=document.getElementById('f-ifaceend').value||null;
-      iface.fsp=document.getElementById('f-fsp').value.trim();
-      iface.tsp=document.getElementById('f-tsp').value.trim();
-      iface.ricefw=document.getElementById('f-ricefw').value.trim();
+function closeIfaceModal(e) {
+  if (!e || e.target === document.getElementById('iface-modal-overlay'))
+    document.getElementById('iface-modal-overlay').classList.remove('open');
+}
+function saveInterface() {
+  var num  = document.getElementById('f-ifacenum').value.trim();
+  var name = document.getElementById('f-ifacename').value.trim();
+  if (!num || !name) { toast('Interface nummer en naam zijn verplicht', 'error'); return; }
+  if (state.editingIfaceId) {
+    var iface = state.interfaces.find(function(i) { return i.id === state.editingIfaceId; });
+    if (iface) {
+      iface.num        = num;
+      iface.name       = name;
+      iface.desc       = document.getElementById('f-ifacedesc').value.trim();
+      iface.status     = document.getElementById('f-ifacestatus').value;
+      iface.priority   = document.getElementById('f-ifaceprio').value;
+      iface.assignee   = document.getElementById('f-ifaceassignee').value;
+      iface.manualStart = document.getElementById('f-ifacestart').value || null;
+      iface.manualEnd   = document.getElementById('f-ifaceend').value   || null;
+      iface.fsp    = document.getElementById('f-fsp').value.trim();
+      iface.tsp    = document.getElementById('f-tsp').value.trim();
+      iface.ricefw = document.getElementById('f-ricefw').value.trim();
     }
   } else {
-    var templateTasks=state.template.map(function(t){
-      return {id:uid(),name:t.name,desc:t.desc||'',status:'open',assignee:'',start:null,end:null,notes:'',comments:[],fromTemplate:true,templateTaskId:t.id};
+    var tmplTasks = state.template.map(function(t) {
+      return { id:uid(), name:t.name, desc:t.desc||'', status:'open', assignee:'', start:null, end:null, notes:'', comments:[], fromTemplate:true, templateTaskId:t.id };
     });
     state.interfaces.push({
-      id:uid(),num:num,name:name,
-      desc:document.getElementById('f-ifacedesc').value.trim(),
-      status:document.getElementById('f-ifacestatus').value,
-      priority:document.getElementById('f-ifaceprio').value,
-      assignee:document.getElementById('f-ifaceassignee').value,
-      manualStart:document.getElementById('f-ifacestart').value||null,
-      manualEnd:document.getElementById('f-ifaceend').value||null,
-      fsp:document.getElementById('f-fsp').value.trim(),
-      tsp:document.getElementById('f-tsp').value.trim(),
-      ricefw:document.getElementById('f-ricefw').value.trim(),
-      tasks:templateTasks,
+      id:uid(), num:num, name:name,
+      desc:     document.getElementById('f-ifacedesc').value.trim(),
+      status:   document.getElementById('f-ifacestatus').value,
+      priority: document.getElementById('f-ifaceprio').value,
+      assignee: document.getElementById('f-ifaceassignee').value,
+      manualStart: document.getElementById('f-ifacestart').value || null,
+      manualEnd:   document.getElementById('f-ifaceend').value   || null,
+      fsp:    document.getElementById('f-fsp').value.trim(),
+      tsp:    document.getElementById('f-tsp').value.trim(),
+      ricefw: document.getElementById('f-ricefw').value.trim(),
+      tasks: tmplTasks,
     });
   }
   closeIfaceModal();
   saveToFirebase();
   renderInterfacesList();
   updateBadges();
-  toast(state.editingIfaceId?'Interface bijgewerkt':'Interface toegevoegd','success');
+  toast(state.editingIfaceId ? 'Interface bijgewerkt' : 'Interface toegevoegd', 'success');
 }
-function deleteInterface(id){
-  var iface=state.interfaces.find(function(i){return i.id===id;});
-  if(!iface)return;
-  confirm_('Interface "'+iface.name+'" verwijderen? Dit verwijdert ook alle taken.').then(function(ok){
-    if(!ok)return;
-    state.interfaces=state.interfaces.filter(function(i){return i.id!==id;});
-    saveToFirebase();renderInterfacesList();updateBadges();
-    toast('Interface verwijderd','success');
+function deleteInterface(id) {
+  var iface = state.interfaces.find(function(i) { return i.id === id; });
+  if (!iface) return;
+  confirm_('Interface "' + iface.name + '" verwijderen? Dit verwijdert ook alle taken.').then(function(ok) {
+    if (!ok) return;
+    state.interfaces = state.interfaces.filter(function(i) { return i.id !== id; });
+    if (state.expandedIfaceId === id) { state.expandedIfaceId = null; closeIfaceSidePanel(); }
+    saveToFirebase(); renderInterfacesList(); updateBadges();
+    toast('Interface verwijderd', 'success');
   });
 }
 
-// ─── TASK CRUD ────────────────────────────────────────────────────────────────
-function openAddTaskModal(){
-  state.editingTaskId=null;
-  document.getElementById('task-modal-title').textContent='Taak toevoegen';
-  ['f-taskname','f-tasknotes','f-taskstart','f-taskend'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('f-taskstatus').value='open';
-  populateAssigneeSelect('f-taskassignee','');
+// TASK CRUD
+function openAddTaskModal() {
+  state.editingTaskId = null;
+  document.getElementById('task-modal-title').textContent = 'Taak toevoegen';
+  ['f-taskname','f-tasknotes','f-taskstart','f-taskend'].forEach(function(id) { document.getElementById(id).value = ''; });
+  document.getElementById('f-taskstatus').value = 'open';
+  populateAssigneeSelect('f-taskassignee', '');
   document.getElementById('task-modal-overlay').classList.add('open');
 }
-function openEditTaskModal(taskId){
-  var iface=state.interfaces.find(function(i){return i.id===state.currentIfaceId;});
-  if(!iface)return;
-  var task=(iface.tasks||[]).find(function(t){return t.id===taskId;});
-  if(!task)return;
-  state.editingTaskId=taskId;
-  document.getElementById('task-modal-title').textContent='Taak bewerken';
-  document.getElementById('f-taskname').value=task.name||'';
-  document.getElementById('f-tasknotes').value=task.notes||'';
-  document.getElementById('f-taskstatus').value=task.status||'open';
-  document.getElementById('f-taskstart').value=task.start||'';
-  document.getElementById('f-taskend').value=task.end||'';
-  populateAssigneeSelect('f-taskassignee',task.assignee||'');
+function openEditTaskModal(taskId) {
+  var iface = state.interfaces.find(function(i) { return i.id === state.currentIfaceId; });
+  if (!iface) return;
+  var task = (iface.tasks || []).find(function(t) { return t.id === taskId; });
+  if (!task) return;
+  state.editingTaskId = taskId;
+  document.getElementById('task-modal-title').textContent = 'Taak bewerken';
+  document.getElementById('f-taskname').value  = task.name  || '';
+  document.getElementById('f-tasknotes').value = task.notes || '';
+  document.getElementById('f-taskstatus').value = task.status || 'open';
+  document.getElementById('f-taskstart').value = task.start || '';
+  document.getElementById('f-taskend').value   = task.end   || '';
+  populateAssigneeSelect('f-taskassignee', task.assignee || '');
   document.getElementById('task-modal-overlay').classList.add('open');
 }
-function closeTaskModal(e){if(!e||e.target===document.getElementById('task-modal-overlay'))document.getElementById('task-modal-overlay').classList.remove('open');}
-function saveTask(){
-  var name=document.getElementById('f-taskname').value.trim();
-  if(!name){toast('Taaknaam is verplicht','error');return;}
-  var iface=state.interfaces.find(function(i){return i.id===state.currentIfaceId;});
-  if(!iface)return;
-  if(!iface.tasks)iface.tasks=[];
-  var data={
-    name:name,
-    notes:document.getElementById('f-tasknotes').value.trim(),
-    status:document.getElementById('f-taskstatus').value,
-    start:document.getElementById('f-taskstart').value||null,
-    end:document.getElementById('f-taskend').value||null,
-    assignee:document.getElementById('f-taskassignee').value,
+function closeTaskModal(e) {
+  if (!e || e.target === document.getElementById('task-modal-overlay'))
+    document.getElementById('task-modal-overlay').classList.remove('open');
+}
+function saveTask() {
+  var name = document.getElementById('f-taskname').value.trim();
+  if (!name) { toast('Taaknaam is verplicht', 'error'); return; }
+  var iface = state.interfaces.find(function(i) { return i.id === state.currentIfaceId; });
+  if (!iface) return;
+  if (!iface.tasks) iface.tasks = [];
+  var data = {
+    name:     name,
+    notes:    document.getElementById('f-tasknotes').value.trim(),
+    status:   document.getElementById('f-taskstatus').value,
+    start:    document.getElementById('f-taskstart').value || null,
+    end:      document.getElementById('f-taskend').value   || null,
+    assignee: document.getElementById('f-taskassignee').value,
   };
-  if(state.editingTaskId){
-    var task=iface.tasks.find(function(t){return t.id===state.editingTaskId;});
-    if(task)Object.assign(task,data);
+  if (state.editingTaskId) {
+    var task = iface.tasks.find(function(t) { return t.id === state.editingTaskId; });
+    if (task) { task.name = data.name; task.notes = data.notes; task.status = data.status; task.start = data.start; task.end = data.end; task.assignee = data.assignee; }
   } else {
-    iface.tasks.push(Object.assign({id:uid(),comments:[],fromTemplate:false},data));
+    iface.tasks.push({ id:uid(), comments:[], fromTemplate:false, name:data.name, notes:data.notes, status:data.status, start:data.start, end:data.end, assignee:data.assignee });
   }
   closeTaskModal();
   saveToFirebase();
-  renderDetailMain();
-  toast(state.editingTaskId?'Taak bijgewerkt':'Taak toegevoegd','success');
+  renderInterfacesList();
+  toast(state.editingTaskId ? 'Taak bijgewerkt' : 'Taak toegevoegd', 'success');
 }
-function deleteTask(taskId){
-  var iface=state.interfaces.find(function(i){return i.id===state.currentIfaceId;});
-  if(!iface)return;
-  var task=(iface.tasks||[]).find(function(t){return t.id===taskId;});
-  if(!task)return;
-  confirm_('Taak "'+task.name+'" verwijderen?').then(function(ok){
-    if(!ok)return;
-    iface.tasks=iface.tasks.filter(function(t){return t.id!==taskId;});
-    if(state.currentTaskId===taskId)closeSidePanel();
-    saveToFirebase();renderDetailMain();
-    toast('Taak verwijderd','success');
+function deleteTask(taskId) {
+  var iface = state.interfaces.find(function(i) { return i.id === state.currentIfaceId; });
+  if (!iface) return;
+  var task = (iface.tasks || []).find(function(t) { return t.id === taskId; });
+  if (!task) return;
+  confirm_('Taak "' + task.name + '" verwijderen?').then(function(ok) {
+    if (!ok) return;
+    iface.tasks = iface.tasks.filter(function(t) { return t.id !== taskId; });
+    if (state.currentTaskId === taskId) closeIfaceSidePanel();
+    saveToFirebase(); renderInterfacesList();
+    toast('Taak verwijderd', 'success');
   });
 }
 
-// ─── PEOPLE ────────────────────────────────────────────────────────────────────
-function renderPeople(){
-  var list=document.getElementById('people-list');
-  if(!list)return;
-  if(!state.people.length){
-    list.innerHTML='<div class="empty-state" style="margin-top:60px"><p>Nog geen teamleden. Voeg er een toe.</p></div>';
-    return;
-  }
-  var cards=state.people.map(function(p){
+// PEOPLE
+function renderPeople() {
+  var list = document.getElementById('people-list');
+  if (!list) return;
+  if (!state.people.length) { list.innerHTML = '<div class="empty-state" style="margin-top:60px"><p>Nog geen teamleden. Voeg er een toe.</p></div>'; return; }
+  var cards = state.people.map(function(p) {
     return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:12px">'
-      +'<div style="width:36px;height:36px;border-radius:50%;background:var(--surface3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--text2);flex-shrink:0">'+initials(p.name)+'</div>'
-      +'<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">'+esc(p.name)+'</div>'+(p.role?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+esc(p.role)+'</div>':'')+'</div>'
-      +'<div style="display:flex;gap:4px;flex-shrink:0">'
-        +'<button class="btn-icon" onclick="editPerson(\''+p.id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg></button>'
-        +'<button class="btn-icon" style="color:var(--blocked)" onclick="deletePerson(\''+p.id+'\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M5 4V2h6v2M6 7v5M10 7v5"/></svg></button>'
-      +'</div></div>';
+      + '<div style="width:36px;height:36px;border-radius:50%;background:var(--surface3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--text2);flex-shrink:0">' + initials(p.name) + '</div>'
+      + '<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">' + esc(p.name) + '</div>' + (p.role ? '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + esc(p.role) + '</div>' : '') + '</div>'
+      + '<div style="display:flex;gap:4px;flex-shrink:0">'
+      + '<button class="btn-icon" onclick="editPerson(\'' + p.id + '\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg></button>'
+      + '<button class="btn-icon" style="color:var(--blocked)" onclick="deletePerson(\'' + p.id + '\')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M5 4V2h6v2M6 7v5M10 7v5"/></svg></button>'
+      + '</div></div>';
   }).join('');
-  list.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">'+cards+'</div>';
+  list.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">' + cards + '</div>';
 }
-function openAddPersonModal(){
-  state.editingPersonId=null;
-  document.getElementById('person-modal-title').textContent='Persoon toevoegen';
-  document.getElementById('f-personname').value='';
-  document.getElementById('f-personrole').value='';
+function openAddPersonModal() {
+  state.editingPersonId = null;
+  document.getElementById('person-modal-title').textContent = 'Persoon toevoegen';
+  document.getElementById('f-personname').value = '';
+  document.getElementById('f-personrole').value = '';
   document.getElementById('person-modal-overlay').classList.add('open');
 }
-function editPerson(id){
-  var p=state.people.find(function(x){return x.id===id;});if(!p)return;
-  state.editingPersonId=id;
-  document.getElementById('person-modal-title').textContent='Persoon bewerken';
-  document.getElementById('f-personname').value=p.name;
-  document.getElementById('f-personrole').value=p.role||'';
+function editPerson(id) {
+  var p = state.people.find(function(x) { return x.id === id; });
+  if (!p) return;
+  state.editingPersonId = id;
+  document.getElementById('person-modal-title').textContent = 'Persoon bewerken';
+  document.getElementById('f-personname').value = p.name;
+  document.getElementById('f-personrole').value = p.role || '';
   document.getElementById('person-modal-overlay').classList.add('open');
 }
-function closePersonModal(e){if(!e||e.target===document.getElementById('person-modal-overlay'))document.getElementById('person-modal-overlay').classList.remove('open');}
-function savePerson(){
-  var name=document.getElementById('f-personname').value.trim();
-  if(!name){toast('Naam is verplicht','error');return;}
-  var role=document.getElementById('f-personrole').value.trim();
-  if(state.editingPersonId){
-    var p=state.people.find(function(x){return x.id===state.editingPersonId;});
-    if(p){p.name=name;p.role=role;}
+function closePersonModal(e) {
+  if (!e || e.target === document.getElementById('person-modal-overlay'))
+    document.getElementById('person-modal-overlay').classList.remove('open');
+}
+function savePerson() {
+  var name = document.getElementById('f-personname').value.trim();
+  if (!name) { toast('Naam is verplicht', 'error'); return; }
+  var role = document.getElementById('f-personrole').value.trim();
+  if (state.editingPersonId) {
+    var p = state.people.find(function(x) { return x.id === state.editingPersonId; });
+    if (p) { p.name = name; p.role = role; }
   } else {
-    state.people.push({id:uid(),name:name,role:role});
+    state.people.push({ id:uid(), name:name, role:role });
   }
-  closePersonModal();
-  saveToFirebase();renderPeople();updateBadges();
-  toast('Persoon opgeslagen','success');
+  closePersonModal(); saveToFirebase(); renderPeople(); updateBadges();
+  toast('Persoon opgeslagen', 'success');
 }
-function deletePerson(id){
-  var p=state.people.find(function(x){return x.id===id;});if(!p)return;
-  confirm_('"'+p.name+'" verwijderen?').then(function(ok){
-    if(!ok)return;
-    state.people=state.people.filter(function(x){return x.id!==id;});
-    saveToFirebase();renderPeople();updateBadges();
-    toast('Persoon verwijderd','success');
+function deletePerson(id) {
+  var p = state.people.find(function(x) { return x.id === id; });
+  if (!p) return;
+  confirm_('"' + p.name + '" verwijderen?').then(function(ok) {
+    if (!ok) return;
+    state.people = state.people.filter(function(x) { return x.id !== id; });
+    saveToFirebase(); renderPeople(); updateBadges();
+    toast('Persoon verwijderd', 'success');
   });
 }
-function populateAssigneeSelect(selectId,currentValue){
-  var sel=document.getElementById(selectId);
-  if(!sel)return;
-  sel.innerHTML='<option value="">&#8212; Niet toegewezen &#8212;</option>'
-    +state.people.map(function(p){
-      return '<option value="'+esc(p.name)+'"'+(p.name===currentValue?' selected':'')+'>'+esc(p.name)+(p.role?' ('+esc(p.role)+')':'')+'</option>';
+function populateAssigneeSelect(selectId, currentValue) {
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">- Niet toegewezen -</option>'
+    + state.people.map(function(p) {
+      return '<option value="' + esc(p.name) + '"' + (p.name === currentValue ? ' selected' : '') + '>' + esc(p.name) + (p.role ? ' (' + esc(p.role) + ')' : '') + '</option>';
     }).join('');
 }
 
-// ─── TEMPLATE ────────────────────────────────────────────────────────────────
-function renderTemplate(){
-  var wrap=document.getElementById('template-wrap');
-  if(!wrap)return;
-  if(!state.template.length){
-    wrap.innerHTML='<div class="empty-state" style="margin-top:60px"><p>Geen sjabloontaken. Voeg er een toe.</p></div>';
-    return;
-  }
-  wrap.innerHTML=state.template.map(function(t,i){
-    return '<div class="template-task-row" draggable="true" data-id="'+t.id+'"'
-      +' ondragstart="dragStart(event,\''+t.id+'\')" ondragover="dragOver(event)" ondrop="dropOn(event,\''+t.id+'\')">'
-      +'<span class="drag-handle"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h8M4 10h8"/></svg></span>'
-      +'<span class="template-task-order">'+(i+1)+'</span>'
-      +'<div style="flex:1"><div class="template-task-name">'+esc(t.name)+'</div>'+(t.desc?'<div style="font-size:11px;color:var(--text3);margin-top:2px">'+esc(t.desc)+'</div>':'')+'</div>'
-      +'<button class="btn-icon" onclick="editTmplTask(\''+t.id+'\')" title="Bewerken"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg></button>'
-      +'<button class="btn-icon" onclick="deleteTmplTask(\''+t.id+'\')" style="color:var(--blocked)" title="Verwijderen"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M5 4V2h6v2M6 7v5M10 7v5"/></svg></button>'
-      +'</div>';
+// TEMPLATE
+function renderTemplate() {
+  var wrap = document.getElementById('template-wrap');
+  if (!wrap) return;
+  if (!state.template.length) { wrap.innerHTML = '<div class="empty-state" style="margin-top:60px"><p>Geen sjabloontaken. Voeg er een toe.</p></div>'; return; }
+  wrap.innerHTML = state.template.map(function(t, i) {
+    return '<div class="template-task-row" draggable="true" data-id="' + t.id + '"'
+      + ' ondragstart="dragStart(event,\'' + t.id + '\')" ondragover="dragOver(event)" ondrop="dropOn(event,\'' + t.id + '\')">'
+      + '<span class="drag-handle"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h8M4 10h8"/></svg></span>'
+      + '<span class="template-task-order">' + (i + 1) + '</span>'
+      + '<div style="flex:1"><div class="template-task-name">' + esc(t.name) + '</div>' + (t.desc ? '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + esc(t.desc) + '</div>' : '') + '</div>'
+      + '<button class="btn-icon" onclick="editTmplTask(\'' + t.id + '\')" title="Bewerken"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg></button>'
+      + '<button class="btn-icon" style="color:var(--blocked)" onclick="deleteTmplTask(\'' + t.id + '\')" title="Verwijderen"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M5 4V2h6v2M6 7v5M10 7v5"/></svg></button>'
+      + '</div>';
   }).join('');
 }
-var dragSrcId=null;
-function dragStart(e,id){dragSrcId=id;}
-function dragOver(e){e.preventDefault();}
-function dropOn(e,targetId){
+var dragSrcId = null;
+function dragStart(e, id) { dragSrcId = id; }
+function dragOver(e) { e.preventDefault(); }
+function dropOn(e, targetId) {
   e.preventDefault();
-  if(dragSrcId===targetId)return;
-  var srcIdx=state.template.findIndex(function(t){return t.id===dragSrcId;});
-  var tgtIdx=state.template.findIndex(function(t){return t.id===targetId;});
-  if(srcIdx<0||tgtIdx<0)return;
-  var item=state.template.splice(srcIdx,1)[0];
-  state.template.splice(tgtIdx,0,item);
-  saveToFirebase();renderTemplate();
+  if (dragSrcId === targetId) return;
+  var si = state.template.findIndex(function(t) { return t.id === dragSrcId; });
+  var ti = state.template.findIndex(function(t) { return t.id === targetId; });
+  if (si < 0 || ti < 0) return;
+  var item = state.template.splice(si, 1)[0];
+  state.template.splice(ti, 0, item);
+  saveToFirebase(); renderTemplate();
 }
-function openAddTemplateTaskModal(){
-  state.editingTmplId=null;
-  document.getElementById('tmpl-modal-title').textContent='Sjabloontaak toevoegen';
-  document.getElementById('f-tmplname').value='';
-  document.getElementById('f-tmpldesc').value='';
+function openAddTemplateTaskModal() {
+  state.editingTmplId = null;
+  document.getElementById('tmpl-modal-title').textContent = 'Sjabloontaak toevoegen';
+  document.getElementById('f-tmplname').value = '';
+  document.getElementById('f-tmpldesc').value = '';
   document.getElementById('tmpl-modal-overlay').classList.add('open');
 }
-function editTmplTask(id){
-  var t=state.template.find(function(x){return x.id===id;});
-  if(!t)return;
-  state.editingTmplId=id;
-  document.getElementById('tmpl-modal-title').textContent='Sjabloontaak bewerken';
-  document.getElementById('f-tmplname').value=t.name;
-  document.getElementById('f-tmpldesc').value=t.desc||'';
+function editTmplTask(id) {
+  var t = state.template.find(function(x) { return x.id === id; });
+  if (!t) return;
+  state.editingTmplId = id;
+  document.getElementById('tmpl-modal-title').textContent = 'Sjabloontaak bewerken';
+  document.getElementById('f-tmplname').value = t.name;
+  document.getElementById('f-tmpldesc').value = t.desc || '';
   document.getElementById('tmpl-modal-overlay').classList.add('open');
 }
-function closeTmplModal(e){if(!e||e.target===document.getElementById('tmpl-modal-overlay'))document.getElementById('tmpl-modal-overlay').classList.remove('open');}
-function saveTmplTask(){
-  var name=document.getElementById('f-tmplname').value.trim();
-  if(!name){toast('Naam is verplicht','error');return;}
-  if(state.editingTmplId){
-    var t=state.template.find(function(x){return x.id===state.editingTmplId;});
-    if(t){t.name=name;t.desc=document.getElementById('f-tmpldesc').value.trim();}
+function closeTmplModal(e) {
+  if (!e || e.target === document.getElementById('tmpl-modal-overlay'))
+    document.getElementById('tmpl-modal-overlay').classList.remove('open');
+}
+function saveTmplTask() {
+  var name = document.getElementById('f-tmplname').value.trim();
+  if (!name) { toast('Naam is verplicht', 'error'); return; }
+  if (state.editingTmplId) {
+    var t = state.template.find(function(x) { return x.id === state.editingTmplId; });
+    if (t) { t.name = name; t.desc = document.getElementById('f-tmpldesc').value.trim(); }
   } else {
-    state.template.push({id:uid(),name:name,desc:document.getElementById('f-tmpldesc').value.trim()});
+    state.template.push({ id:uid(), name:name, desc:document.getElementById('f-tmpldesc').value.trim() });
   }
-  closeTmplModal();saveToFirebase();renderTemplate();
-  toast('Sjabloontaak opgeslagen','success');
+  closeTmplModal(); saveToFirebase(); renderTemplate();
+  toast('Sjabloontaak opgeslagen', 'success');
 }
-function deleteTmplTask(id){
-  var t=state.template.find(function(x){return x.id===id;});if(!t)return;
-  confirm_('Sjabloontaak "'+t.name+'" verwijderen?').then(function(ok){
-    if(!ok)return;
-    state.template=state.template.filter(function(x){return x.id!==id;});
-    saveToFirebase();renderTemplate();
-    toast('Sjabloontaak verwijderd','success');
+function deleteTmplTask(id) {
+  var t = state.template.find(function(x) { return x.id === id; });
+  if (!t) return;
+  confirm_('Sjabloontaak "' + t.name + '" verwijderen?').then(function(ok) {
+    if (!ok) return;
+    state.template = state.template.filter(function(x) { return x.id !== id; });
+    saveToFirebase(); renderTemplate();
+    toast('Sjabloontaak verwijderd', 'success');
   });
 }
 
-// ─── GANTT (global) ────────────────────────────────────────────────────────────
-function renderGantt(){
-  var tasks=allTasks().filter(function(t){return t.start&&t.end;});
-  if(!tasks.length){
-    document.getElementById('gantt-tasks-list').innerHTML='<div style="padding:20px;color:var(--text3);font-size:13px">Geen taken met start- en einddatum.</div>';
-    document.getElementById('gantt-bars').innerHTML='';
-    document.getElementById('gantt-timeline-header').innerHTML='';
+// GANTT
+function renderGantt() {
+  var tasks = allTasks().filter(function(t) { return t.start && t.end; });
+  if (!tasks.length) {
+    document.getElementById('gantt-tasks-list').innerHTML = '<div style="padding:20px;color:var(--text3);font-size:13px">Geen taken met start- en einddatum.</div>';
+    document.getElementById('gantt-bars').innerHTML = '';
+    document.getElementById('gantt-timeline-header').innerHTML = '';
     return;
   }
-  var minD=new Date(tasks.reduce(function(m,t){return t.start<m?t.start:m;},tasks[0].start));
-  var maxD=new Date(tasks.reduce(function(m,t){return t.end>m?t.end:m;},tasks[0].end));
-  minD=new Date(minD.getFullYear(),minD.getMonth(),1);
-  maxD=new Date(maxD.getFullYear(),maxD.getMonth()+1,1);
-  var totalDays=Math.ceil((maxD-minD)/86400000);
-  var DAY_W=28;
-  var totalW=totalDays*DAY_W;
+  var minD = new Date(tasks.reduce(function(m,t) { return t.start < m ? t.start : m; }, tasks[0].start));
+  var maxD = new Date(tasks.reduce(function(m,t) { return t.end   > m ? t.end   : m; }, tasks[0].end));
+  minD = new Date(minD.getFullYear(), minD.getMonth(), 1);
+  maxD = new Date(maxD.getFullYear(), maxD.getMonth() + 1, 1);
+  var DAY_W    = 28;
+  var totalW   = Math.ceil((maxD - minD) / 86400000) * DAY_W;
+  var todayOff = Math.max(0, Math.ceil((new Date() - minD) / 86400000)) * DAY_W;
 
-  var months=[];
-  var d=new Date(minD);
-  while(d<maxD){
-    var ms=new Date(d);
-    var me=new Date(d.getFullYear(),d.getMonth()+1,1);
-    var days=Math.ceil((Math.min(me,maxD)-ms)/86400000);
-    months.push({label:ms.toLocaleDateString('nl-BE',{month:'short',year:'numeric'}),days:days});
-    d=me;
+  var months = []; var d = new Date(minD);
+  while (d < maxD) {
+    var ms = new Date(d); var me = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+    months.push({ label: ms.toLocaleDateString('nl-BE', { month:'short', year:'numeric' }), days: Math.ceil((Math.min(me, maxD) - ms) / 86400000) });
+    d = me;
   }
+  document.getElementById('gantt-timeline-header').innerHTML = '<div class="gantt-months">'
+    + months.map(function(m) { return '<div class="gantt-month-label" style="width:' + m.days * DAY_W + 'px;min-width:' + m.days * DAY_W + 'px">' + m.label + '</div>'; }).join('')
+    + '</div>';
 
-  document.getElementById('gantt-timeline-header').innerHTML='<div class="gantt-months">'
-    +months.map(function(m){
-      return '<div class="gantt-month-label" style="width:'+m.days*DAY_W+'px;min-width:'+m.days*DAY_W+'px">'+m.label+'</div>';
-    }).join('')+'</div>';
-
-  var byIface={};
-  tasks.forEach(function(t){
-    if(!byIface[t.ifaceId])byIface[t.ifaceId]={id:t.ifaceId,num:t.ifaceNum,name:t.ifaceName,tasks:[]};
+  var byIface = {};
+  tasks.forEach(function(t) {
+    if (!byIface[t.ifaceId]) byIface[t.ifaceId] = { num:t.ifaceNum, name:t.ifaceName, tasks:[] };
     byIface[t.ifaceId].tasks.push(t);
   });
-  var rows=[];
-  Object.values(byIface).forEach(function(g){
-    rows.push({type:'iface',label:g.num+' '+g.name,id:g.id});
-    g.tasks.forEach(function(t){rows.push({type:'task',task:t});});
-  });
+  var rows = []; var keys = Object.keys(byIface);
+  keys.forEach(function(k) { var g = byIface[k]; rows.push({ type:'iface', label:g.num + ' ' + g.name }); g.tasks.forEach(function(t) { rows.push({ type:'task', task:t }); }); });
 
-  var W=state.ganttTaskColW;
-  document.getElementById('gantt-task-col-header').style.width=W+'px';
-  document.getElementById('gantt-tasks-list').style.width=W+'px';
-  document.getElementById('gantt-tasks-list').innerHTML=rows.map(function(r){
-    return r.type==='iface'
-      ?'<div class="gantt-task-item interface-row">'+esc(r.label)+'</div>'
-      :'<div class="gantt-task-item task-row-gantt" onclick="openDetail(\''+r.task.ifaceId+'\',\''+r.task.id+'\')">'+esc(r.task.name)+'</div>';
+  var W = state.ganttTaskColW;
+  document.getElementById('gantt-task-col-header').style.width = W + 'px';
+  document.getElementById('gantt-tasks-list').style.width = W + 'px';
+  document.getElementById('gantt-tasks-list').innerHTML = rows.map(function(r) {
+    return r.type === 'iface'
+      ? '<div class="gantt-task-item interface-row">' + esc(r.label) + '</div>'
+      : '<div class="gantt-task-item task-row-gantt" onclick="openDetail(\'' + r.task.ifaceId + '\',\'' + r.task.id + '\')">' + esc(r.task.name) + '</div>';
   }).join('');
 
-  var todayOff=Math.max(0,Math.ceil((new Date()-minD)/86400000))*DAY_W;
-  var barsHTML=rows.map(function(r){
-    if(r.type==='iface')return '<div class="gantt-bar-row" style="background:var(--surface2)"></div>';
-    var t=r.task;
-    var left=Math.ceil((new Date(t.start)-minD)/86400000)*DAY_W;
-    var width=Math.max(DAY_W,Math.ceil((new Date(t.end)-new Date(t.start))/86400000+1)*DAY_W);
-    return '<div class="gantt-bar-row"><div class="gantt-bar '+t.status+'" style="left:'+left+'px;width:'+width+'px" onclick="openDetail(\''+t.ifaceId+'\',\''+t.id+'\')">'+esc(t.name)+'</div></div>';
+  var barsHTML = rows.map(function(r) {
+    if (r.type === 'iface') return '<div class="gantt-bar-row" style="background:var(--surface2)"></div>';
+    var t = r.task;
+    var left  = Math.ceil((new Date(t.start) - minD) / 86400000) * DAY_W;
+    var width = Math.max(DAY_W, Math.ceil((new Date(t.end) - new Date(t.start)) / 86400000 + 1) * DAY_W);
+    return '<div class="gantt-bar-row"><div class="gantt-bar ' + t.status + '" style="left:' + left + 'px;width:' + width + 'px" onclick="openDetail(\'' + t.ifaceId + '\',\'' + t.id + '\')">' + esc(t.name) + '</div></div>';
   }).join('');
 
-  document.getElementById('gantt-bars').innerHTML='<div style="position:relative;width:'+totalW+'px;min-height:100%">'
-    +'<div class="gantt-today-line" style="left:'+todayOff+'px"></div>'
-    +barsHTML+'</div>';
+  document.getElementById('gantt-bars').innerHTML = '<div style="position:relative;width:' + totalW + 'px;min-height:100%"><div class="gantt-today-line" style="left:' + todayOff + 'px"></div>' + barsHTML + '</div>';
   setupGanttResize();
 }
-
-function renderDetailGantt(iface){
-  var tasks=(iface.tasks||[]).filter(function(t){return t.start&&t.end;});
-  if(!tasks.length){
-    document.getElementById('detail-main').innerHTML='<div class="empty-state" style="margin-top:40px"><p>Geen taken met start- en einddatum voor Gantt.</p></div>';
-    return;
-  }
-  var minD=new Date(tasks.reduce(function(m,t){return t.start<m?t.start:m;},tasks[0].start));
-  var maxD=new Date(tasks.reduce(function(m,t){return t.end>m?t.end:m;},tasks[0].end));
-  minD=new Date(minD.getFullYear(),minD.getMonth(),1);
-  maxD=new Date(maxD.getFullYear(),maxD.getMonth()+1,1);
-  var DAY_W=24;
-  var totalW=Math.ceil((maxD-minD)/86400000)*DAY_W;
-  var months=[];
-  var d=new Date(minD);
-  while(d<maxD){
-    var ms=new Date(d);var me=new Date(d.getFullYear(),d.getMonth()+1,1);
-    months.push({label:ms.toLocaleDateString('nl-BE',{month:'short',year:'2-digit'}),days:Math.ceil((Math.min(me,maxD)-ms)/86400000)});
-    d=me;
-  }
-  var todayOff=Math.max(0,Math.ceil((new Date()-minD)/86400000))*DAY_W;
-  var COL=180;
-  var taskListRows=tasks.map(function(t){
-    return '<div style="height:36px;border-bottom:1px solid var(--border);padding:0 12px;display:flex;align-items:center;font-size:12px;overflow:hidden;cursor:pointer;white-space:nowrap;text-overflow:ellipsis" onclick="openTaskSidePanel(\''+t.id+'\')">'+esc(t.name)+'</div>';
-  }).join('');
-  var monthHeader=months.map(function(m){
-    return '<div style="width:'+m.days*DAY_W+'px;flex-shrink:0;border-right:1px solid var(--border);padding:0 8px;display:flex;align-items:center;font-size:11px;font-weight:600;color:var(--text3)">'+m.label+'</div>';
-  }).join('');
-  var barRows=tasks.map(function(t){
-    var left=Math.ceil((new Date(t.start)-minD)/86400000)*DAY_W;
-    var width=Math.max(DAY_W,Math.ceil((new Date(t.end)-new Date(t.start))/86400000+1)*DAY_W);
-    return '<div style="height:36px;border-bottom:1px solid var(--border);position:relative;display:flex;align-items:center">'
-      +'<div class="gantt-bar '+t.status+'" style="left:'+left+'px;width:'+width+'px;font-size:10px" onclick="openTaskSidePanel(\''+t.id+'\')">'+esc(t.name)+'</div></div>';
-  }).join('');
-  document.getElementById('detail-main').innerHTML=
-    '<div style="display:flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">'
-      +'<div style="width:'+COL+'px;flex-shrink:0;border-right:1px solid var(--border)">'
-        +'<div style="height:36px;border-bottom:1px solid var(--border);padding:0 12px;display:flex;align-items:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.7px;color:var(--text3)">Taak</div>'
-        +taskListRows
-      +'</div>'
-      +'<div style="flex:1;overflow-x:auto">'
-        +'<div style="width:'+totalW+'px;position:relative">'
-          +'<div style="display:flex;height:36px;border-bottom:1px solid var(--border)">'+monthHeader+'</div>'
-          +'<div class="gantt-today-line" style="left:'+todayOff+'px;top:0"></div>'
-          +barRows
-        +'</div>'
-      +'</div>'
-    +'</div>';
-}
-
-function setupGanttResize(){
-  var handle=document.getElementById('gantt-resize-handle');
-  if(!handle||handle._bound)return;
-  handle._bound=true;
-  var startX,startW;
-  handle.addEventListener('mousedown',function(e){
-    startX=e.clientX;startW=state.ganttTaskColW;
-    document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
+function setupGanttResize() {
+  var handle = document.getElementById('gantt-resize-handle');
+  if (!handle || handle._bound) return;
+  handle._bound = true;
+  var startX, startW;
+  handle.addEventListener('mousedown', function(e) {
+    startX = e.clientX; startW = state.ganttTaskColW;
+    document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
   });
-  function onMove(e){
-    var w=Math.max(160,Math.min(500,startW+(e.clientX-startX)));
-    state.ganttTaskColW=w;
-    document.getElementById('gantt-task-col-header').style.width=w+'px';
-    document.getElementById('gantt-tasks-list').style.width=w+'px';
-    localStorage.setItem('ganttColW',w);
+  function onMove(e) {
+    var w = Math.max(160, Math.min(500, startW + (e.clientX - startX)));
+    state.ganttTaskColW = w;
+    document.getElementById('gantt-task-col-header').style.width = w + 'px';
+    document.getElementById('gantt-tasks-list').style.width = w + 'px';
+    localStorage.setItem('ganttColW', w);
   }
-  function onUp(){document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);}
+  function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
 }
 
-// ─── KANBAN ───────────────────────────────────────────────────────────────────
-function renderKanban(){
-  var tasks=allTasks();
-  var cols=[
-    {key:'open',label:'Open',color:'var(--open)'},
-    {key:'inprogress',label:'In Progress',color:'var(--inprogress)'},
-    {key:'review',label:'Review',color:'var(--review)'},
-    {key:'blocked',label:'Blocked',color:'var(--blocked)'},
-    {key:'done',label:'Done',color:'var(--done)'},
+// KANBAN
+function renderKanban() {
+  var tasks = allTasks();
+  var cols = [
+    { key:'open',      label:'Open',       color:'var(--open)' },
+    { key:'inprogress',label:'In Progress',color:'var(--inprogress)' },
+    { key:'review',    label:'Review',     color:'var(--review)' },
+    { key:'blocked',   label:'Blocked',    color:'var(--blocked)' },
+    { key:'done',      label:'Done',       color:'var(--done)' },
   ];
-  document.getElementById('kanban-wrap').innerHTML=cols.map(function(col){
-    var colTasks=tasks.filter(function(t){return t.status===col.key;});
-    var cards=colTasks.map(function(t){
-      return '<div class="kanban-card" onclick="openDetail(\''+t.ifaceId+'\',\''+t.id+'\')">'
-        +'<div class="kanban-card-iface">'+esc(t.ifaceNum)+' &middot; '+esc(t.ifaceName)+'</div>'
-        +'<div class="kanban-card-name">'+esc(t.name)+'</div>'
-        +'<div class="kanban-card-meta">'
-          +(t.assignee?'<div class="kanban-card-assignee"><div class="avatar">'+initials(t.assignee)+'</div><span>'+esc(t.assignee)+'</span></div>':'')
-          +(t.end?'<span style="font-family:\'DM Mono\',monospace">'+fmt(t.end)+'</span>':'')
-        +'</div></div>';
+  document.getElementById('kanban-wrap').innerHTML = cols.map(function(col) {
+    var colTasks = tasks.filter(function(t) { return t.status === col.key; });
+    var cards = colTasks.map(function(t) {
+      return '<div class="kanban-card" onclick="openDetail(\'' + t.ifaceId + '\',\'' + t.id + '\')">'
+        + '<div class="kanban-card-iface">' + esc(t.ifaceNum) + ' &middot; ' + esc(t.ifaceName) + '</div>'
+        + '<div class="kanban-card-name">' + esc(t.name) + '</div>'
+        + '<div class="kanban-card-meta">'
+        + (t.assignee ? '<div class="kanban-card-assignee"><div class="avatar">' + initials(t.assignee) + '</div><span>' + esc(t.assignee) + '</span></div>' : '')
+        + (t.end ? '<span style="font-family:\'DM Mono\',monospace">' + fmt(t.end) + '</span>' : '')
+        + '</div></div>';
     }).join('');
     return '<div class="kanban-col">'
-      +'<div class="kanban-col-header"><div class="k-dot" style="background:'+col.color+'"></div><span style="color:'+col.color+'">'+col.label+'</span><span class="k-count">'+colTasks.length+'</span></div>'
-      +cards+'</div>';
+      + '<div class="kanban-col-header"><div class="k-dot" style="background:' + col.color + '"></div><span style="color:' + col.color + '">' + col.label + '</span><span class="k-count">' + colTasks.length + '</span></div>'
+      + cards + '</div>';
   }).join('');
 }
 
-// ─── SETTINGS ────────────────────────────────────────────────────────────────
-function populateSettingsForm(){
-  var cfg=getFirebaseConfig();
-  if(!cfg)return;
-  document.getElementById('s-apikey').value=cfg.apiKey||'';
-  document.getElementById('s-authdomain').value=cfg.authDomain||'';
-  document.getElementById('s-dburl').value=cfg.databaseURL||'';
-  document.getElementById('s-projectid').value=cfg.projectId||'';
-  document.getElementById('s-bucket').value=cfg.storageBucket||'';
-  document.getElementById('s-senderid').value=cfg.messagingSenderId||'';
-  document.getElementById('s-appid').value=cfg.appId||'';
+// SETTINGS
+function populateSettingsForm() {
+  var cfg = getFirebaseConfig();
+  if (!cfg) return;
+  document.getElementById('s-apikey').value    = cfg.apiKey            || '';
+  document.getElementById('s-authdomain').value = cfg.authDomain        || '';
+  document.getElementById('s-dburl').value      = cfg.databaseURL       || '';
+  document.getElementById('s-projectid').value  = cfg.projectId         || '';
+  document.getElementById('s-bucket').value     = cfg.storageBucket     || '';
+  document.getElementById('s-senderid').value   = cfg.messagingSenderId || '';
+  document.getElementById('s-appid').value      = cfg.appId             || '';
 }
 
-// ─── CONFIRM DIALOG ───────────────────────────────────────────────────────────
-function confirm_(msg,okLabel){
-  okLabel=okLabel||'Verwijderen';
-  return new Promise(function(res){
-    state.confirmResolveCallback=res;
-    document.getElementById('confirm-msg').textContent=msg;
-    document.getElementById('confirm-ok-btn').textContent=okLabel;
+// CONFIRM
+function confirm_(msg, okLabel) {
+  okLabel = okLabel || 'Verwijderen';
+  return new Promise(function(res) {
+    state.confirmResolveCallback = res;
+    document.getElementById('confirm-msg').textContent     = msg;
+    document.getElementById('confirm-ok-btn').textContent  = okLabel;
     document.getElementById('confirm-overlay').classList.add('open');
   });
 }
-function confirmResolve(ok){
+function confirmResolve(ok) {
   document.getElementById('confirm-overlay').classList.remove('open');
-  if(state.confirmResolveCallback)state.confirmResolveCallback(ok);
-  state.confirmResolveCallback=null;
+  if (state.confirmResolveCallback) state.confirmResolveCallback(ok);
+  state.confirmResolveCallback = null;
 }
-function confirmCancel(e){if(e.target===document.getElementById('confirm-overlay'))confirmResolve(false);}
+function confirmCancel(e) { if (e.target === document.getElementById('confirm-overlay')) confirmResolve(false); }
 
-// ─── TOAST ───────────────────────────────────────────────────────────────────
-function toast(msg,type){
-  type=type||'success';
-  var el=document.createElement('div');
-  el.className='toast '+type;
-  var icon=type==='success'
-    ?'<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--done)" stroke-width="2"><path d="M3 8l4 4 6-6"/></svg>'
-    :'<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--blocked)" stroke-width="2"><path d="M8 5v3M8 11h.01"/><circle cx="8" cy="8" r="6"/></svg>';
-  el.innerHTML=icon+msg;
+// TOAST
+function toast(msg, type) {
+  type = type || 'success';
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  var icon = type === 'success'
+    ? '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--done)" stroke-width="2"><path d="M3 8l4 4 6-6"/></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--blocked)" stroke-width="2"><path d="M8 5v3M8 11h.01"/><circle cx="8" cy="8" r="6"/></svg>';
+  el.innerHTML = icon + msg;
   document.getElementById('toast-container').appendChild(el);
-  setTimeout(function(){el.remove();},3000);
+  setTimeout(function() { el.remove(); }, 3000);
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-(function init(){
-  var cfg=getFirebaseConfig();
-  try{initFirebase(cfg);}catch(e){loadLocalFallback();renderCurrentView();updateBadges();}
+// INIT
+(function init() {
+  var cfg = getFirebaseConfig();
+  try { initFirebase(cfg); } catch(e) { loadLocal(); renderCurrentView(); updateBadges(); }
   updateTopbar();
 })();
 </script>
