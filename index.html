@@ -160,9 +160,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .no-link{opacity:0.35;pointer-events:none;cursor:default}
 
 .detail-content{flex:1;overflow:hidden;display:flex}
-.detail-main{flex:1;overflow-y:auto;padding:20px}
-.detail-side{width:320px;border-left:1px solid var(--border);overflow-y:auto;display:none}
-.detail-side.open{display:flex;flex-direction:column}
+.detail-main{flex:1;overflow-y:auto;padding:20px;min-width:0}
+.detail-side{width:0;min-width:0;border-left:0px solid var(--border);overflow:hidden;display:flex;flex-direction:column;transition:width 0.22s ease,border-color 0.22s ease;background:var(--surface)}
+.detail-side.open{width:340px;min-width:340px;border-left:1px solid var(--border);overflow-y:auto}
 
 /* TASK ROWS in detail */
 .tasks-section{margin-bottom:20px}
@@ -179,9 +179,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);dis
 .task-row-effort{font-size:11px;color:var(--text3)}
 
 /* SIDE PANEL */
-.side-panel-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
-.side-panel-title{flex:1;font-weight:600;font-size:14px}
-.side-panel-body{flex:1;overflow-y:auto;padding:16px}
+.side-panel-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;min-width:340px}
+.side-panel-title{flex:1;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-panel-body{flex:1;overflow-y:auto;padding:16px;min-width:340px}
 .field-group{margin-bottom:16px}
 .field-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.7px;color:var(--text3);margin-bottom:6px}
 .field-value{font-size:13px;color:var(--text)}
